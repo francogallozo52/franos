@@ -23,7 +23,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .topbar-right{display:flex;gap:8px}
 .icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all .2s;color:var(--text2)}
 .screens{flex:1;overflow:hidden;position:relative;min-height:0}
-.screen{position:absolute;inset:0;overflow-y:auto;padding:12px 16px 100px;opacity:0;pointer-events:none;transform:translateY(12px);transition:all .3s cubic-bezier(.4,0,.2,1)}
+.screen{position:absolute;top:0;left:0;right:0;bottom:80px;overflow-y:auto;padding:12px 16px 20px;opacity:0;pointer-events:none;transform:translateY(12px);transition:all .3s cubic-bezier(.4,0,.2,1)}
 .screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
 .screen::-webkit-scrollbar{display:none}
 .nav-wrap{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:100;padding-bottom:max(env(safe-area-inset-bottom,0px),16px);max-width:430px}
@@ -563,6 +563,27 @@ function toggleTheme(){
   try{localStorage.setItem('franos-theme',n);}catch{}
 }
 
+function goTo(screen, navItem){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const screenId = screen;
+  const el = document.getElementById('screen-'+screenId);
+  if(el) el.classList.add('active');
+  if(navItem) navItem.classList.add('active');
+  document.getElementById('fab-btn').style.display = screenId==='diario'?'none':'flex';
+  if(screenId==='agenda'){loadAgenda();loadFinanzas();}
+  if(screenId==='play'){loadLibros(lFilter);loadSeries(sFilter);}
+  if(screenId==='diario'){loadDiario();loadRevision();}
+  if(screenId==='proyectos') loadProyectos();
+  if(screenId==='habitos') loadHabitos();
+  if(screenId==='notas') loadNotas(cFilter);
+}
+function refreshFrase(){
+  fi=(fi+1)%FRASES.length;
+  const el=document.getElementById('frase-text');
+  el.style.transition='opacity .2s';el.style.opacity='0';
+  setTimeout(()=>{el.textContent=FRASES[fi];el.style.opacity='1';},200);
+}
 function switchTab(section, tab){
   // hide all tabs in section
   const prefix = section===('diario') ? 'diario-tab' : section===('play') ? 'play-tab' : 'agenda-tab';

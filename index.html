@@ -5,11 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FranOS</title>
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FranOS">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#0f0f11">
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "73af3481-ab96-4b56-a980-aad44fd66b69",
+      serviceWorkerPath: "/franos/OneSignalSDKWorker.js",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+    });
+  });
+</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;--bg4:#26262d;--border:rgba(255,255,255,0.07);--text:#f0efe8;--text2:#9e9da8;--text3:#5c5b67;--accent:#d4845a;--accent2:#7b6fcd;--accent3:#5aad8f;--accent4:#d4a45a;--red:#c96060;--glow:rgba(212,132,90,0.15)}
@@ -524,6 +537,7 @@ function init(){
   autoTheme();
   document.getElementById('frase-text').textContent=FRASES[fi];
   registrarSesion();
+  initNotifications();
   // cada sección carga independientemente
   loadHome();
   loadHabitos();
@@ -1620,7 +1634,258 @@ function showCtxSerie(x, y, id, editData){
 }
 
 
+// ── ONESIGNAL NOTIFICATIONS ──
+async function initOneSignal(){
+  try{
+    await OneSignal.init({
+      appId: "73af3481-ab96-4b56-a980-aad44fd66b69",
+      safari_web_id: "web.onesignal.auto.73af3481-ab96-4b56-a980-aad44fd66b69",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+    });
+
+    // Request permission
+    const permission = await OneSignal.Notifications.requestPermission();
+    if(!permission) return;
+
+    // Schedule notifications using local scheduling
+    scheduleNotifications();
+  }catch(e){ console.warn('OneSignal:', e.message); }
+}
+
+function scheduleNotifications(){
+  // We use a check on each app open to send relevant notifications
+  // via OneSignal's API - this runs client-side as a trigger
+  const now = nowAR();
+  const h = now.getHours();
+  const min = now.getMinutes();
+  const day = now.getDay(); // 0=Sunday
+  const dateStr = today();
+  const lastNotif = localStorage.getItem('franos-last-notif-' + dateStr);
+
+  // Morning notification at 10:00 — hábitos del día
+  if(h === 10 && min < 15 && lastNotif !== 'morning'){
+    localStorage.setItem('franos-last-notif-' + dateStr, 'morning');
+    sendLocalNotif(
+      '☀️ Buenos días, Fran',
+      '¿Qué hábitos arrancás hoy? Revisá tu lista y empezá con uno.',
+      '/franos'
+    );
+  }
+
+  // Evening notification at 22:00 — diario
+  if(h === 22 && min < 15 && lastNotif !== 'evening' && lastNotif !== 'morning'){
+    localStorage.setItem('franos-last-notif-' + dateStr, 'evening');
+    sendLocalNotif(
+      '📓 Antes de dormir, Fran',
+      '¿Escribiste en el diario hoy? Son solo 2 minutos y vale mucho.',
+      '/franos'
+    );
+  }
+
+  // Sunday weekly review
+  if(day === 0 && h >= 10 && h < 12){
+    const lastWeekly = localStorage.getItem('franos-last-weekly');
+    const weekKey = weekStart();
+    if(lastWeekly !== weekKey){
+      localStorage.setItem('franos-last-weekly', weekKey);
+      sendLocalNotif(
+        '🔄 Revisión semanal',
+        'Es domingo. ¿Cómo fue la semana? Dedicale 5 minutos.',
+        '/franos'
+      );
+    }
+  }
+
+  // Monthly financial balance — last 3 days of month
+  const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  if(now.getDate() >= lastDay - 2 && h === 10){
+    const lastMonthly = localStorage.getItem('franos-last-monthly');
+    const monthKey = monthStart();
+    if(lastMonthly !== monthKey){
+      localStorage.setItem('franos-last-monthly', monthKey);
+      sendLocalNotif(
+        '💰 Balance mensual',
+        'Fin de mes. ¿Cómo quedaron las finanzas? Revisá en FranOS.',
+        '/franos'
+      );
+    }
+  }
+}
+
+async function sendLocalNotif(title, message, url){
+  try{
+    await OneSignal.Notifications.requestPermission();
+    // Use OneSignal to show notification
+    if('Notification' in window && Notification.permission === 'granted'){
+      if('serviceWorker' in navigator){
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification(title, {
+          body: message,
+          icon: '/franos/icon-192.png',
+          badge: '/franos/icon-192.png',
+          data: { url: 'https://francogallozo52.github.io' + url },
+          tag: title,
+          requireInteraction: false,
+        });
+      }
+    }
+  }catch(e){ console.warn('notif:', e.message); }
+}
+
+// Check for event reminders
+async function checkEventReminders(){
+  try{
+    const now = nowAR();
+    const todayEvents = await sb('eventos','GET',null,`?fecha=eq.${today()}&order=hora.asc`);
+    for(const ev of todayEvents){
+      if(!ev.hora) continue;
+      const [evH, evM] = ev.hora.split(':').map(Number);
+      const evMinutes = evH * 60 + evM;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const diff = evMinutes - nowMinutes;
+
+      // Remind 2 hours before (120 min)
+      if(diff > 115 && diff < 125){
+        const key = `notif-ev-${ev.id}-${today()}`;
+        if(!localStorage.getItem(key)){
+          localStorage.setItem(key, '1');
+          sendLocalNotif(
+            `📅 En 2 horas: ${ev.titulo}`,
+            `Recordatorio: ${ev.titulo} a las ${ev.hora}`,
+            '/franos'
+          );
+        }
+      }
+    }
+  }catch(e){}
+}
+
+
+// ── NOTIFICACIONES ──
+async function initNotifications(){
+  try{
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal){
+      const permission = await OneSignal.Notifications.permission;
+      if(!permission){
+        // ask permission after 3 seconds
+        setTimeout(async ()=>{
+          await OneSignal.Notifications.requestPermission();
+        }, 3000);
+      }
+      scheduleLocalNotifications();
+    });
+  }catch(e){console.warn('OneSignal:', e);}
+}
+
+function scheduleLocalNotifications(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission !== 'granted') return;
+
+  // Clear old scheduled notifications (use localStorage to track)
+  const now = nowAR();
+  const todayStr = today();
+  const lastScheduled = localStorage.getItem('franos-notif-date');
+  if(lastScheduled === todayStr) return; // already scheduled today
+  localStorage.setItem('franos-notif-date', todayStr);
+
+  const h = now.getHours();
+  const dayOfWeek = now.getDay(); // 0=Sunday
+  const dayOfMonth = now.getDate();
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+
+  // Morning reminder at 10:00
+  scheduleAt(10, 0, getMorningMessage());
+
+  // Night diary reminder at 22:00
+  scheduleAt(22, 0, '📓 ¿Escribiste en tu diario hoy? Aunque sea una línea, vale.');
+
+  // Sunday weekly review
+  if(dayOfWeek === 0){
+    scheduleAt(18, 0, '🔄 Es domingo. ¿Hacés tu revisión semanal?');
+  }
+
+  // Last day of month financial balance
+  if(dayOfMonth === lastDayOfMonth){
+    scheduleAt(20, 0, '💰 Último día del mes. ¿Revisaste tu balance financiero?');
+  }
+}
+
+async function getMorningMessage(){
+  try{
+    const[habs, logs] = await Promise.all([
+      sb('habitos','GET',null,'?select=nombre,icono'),
+      sb('habitos_log','GET',null,`?fecha=eq.${today()}&completado=eq.true&select=habito_id`)
+    ]);
+    const doneIds = new Set(logs.map(l=>l.habito_id));
+    const pendientes = habs.filter(h=>!doneIds.has(h.id));
+    const eventos = await sb('eventos','GET',null,`?fecha=eq.${today()}&order=hora.asc`);
+
+    let msg = '☀️ Buenos días, Fran. ';
+    if(pendientes.length > 0){
+      msg += `Tenés ${pendientes.length} hábito${pendientes.length>1?'s':''} pendiente${pendientes.length>1?'s':''}. `;
+    }
+    if(eventos.length > 0){
+      msg += `Hoy: ${eventos[0].titulo}${eventos[0].hora?' a las '+eventos[0].hora:''}.`;
+    }
+    return msg;
+  }catch{
+    return '☀️ Buenos días, Fran. ¿Cómo arrancamos hoy?';
+  }
+}
+
+function scheduleAt(hour, minute, messageOrPromise){
+  const now = nowAR();
+  const target = new Date(now);
+  target.setHours(hour, minute, 0, 0);
+  const ms = target - now;
+  if(ms < 0) return; // already passed today
+
+  Promise.resolve(messageOrPromise).then(message=>{
+    setTimeout(()=>{
+      if(Notification.permission === 'granted'){
+        new Notification('FranOS', {
+          body: message,
+          icon: '/franos/icon-192.png',
+          badge: '/franos/icon-192.png',
+          tag: `franos-${hour}-${minute}`,
+        });
+      }
+    }, ms);
+  });
+}
+
+// Event reminders - call when loading agenda
+async function scheduleEventReminders(){
+  if(Notification.permission !== 'granted') return;
+  try{
+    const eventos = await sb('eventos','GET',null,`?fecha=eq.${today()}&order=hora.asc`);
+    const now = nowAR();
+    eventos.forEach(e=>{
+      if(!e.hora) return;
+      const[h,m] = e.hora.split(':').map(Number);
+      const eventTime = new Date(now);
+      eventTime.setHours(h,m,0,0);
+      const reminderTime = new Date(eventTime - 2*60*60*1000); // 2 hours before
+      const msUntil = reminderTime - now;
+      if(msUntil > 0){
+        setTimeout(()=>{
+          new Notification('📅 FranOS — Recordatorio', {
+            body: `En 2 horas: ${e.titulo}${e.hora?' a las '+e.hora:''}`,
+            icon: '/franos/icon-192.png',
+            tag: `franos-event-${e.id}`,
+          });
+        }, msUntil);
+      }
+    });
+  }catch{}
+}
+
+
 init();
+initOneSignal();
+setInterval(()=>{scheduleNotifications();checkEventReminders();}, 60000);
 </script>
 </body>
 </html>

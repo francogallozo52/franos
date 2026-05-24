@@ -1,232 +1,358 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FranOS</title>
-<link rel="manifest" href="manifest.json">
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FranOS">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#0f0f11">
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "73af3481-ab96-4b56-a980-aad44fd66b69",
-      serviceWorkerPath: "/franos/OneSignalSDKWorker.js",
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-    });
-  });
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+OneSignalDeferred.push(async function(OneSignal){
+  await OneSignal.init({appId:"73af3481-ab96-4b56-a980-aad44fd66b69",serviceWorkerPath:"./OneSignalSDKWorker.js",serviceWorkerParam:{scope:"./"},notifyButton:{enable:false}});
+});
 </script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;--bg4:#26262d;--border:rgba(255,255,255,0.07);--text:#f0efe8;--text2:#9e9da8;--text3:#5c5b67;--accent:#d4845a;--accent2:#7b6fcd;--accent3:#5aad8f;--accent4:#d4a45a;--red:#c96060;--glow:rgba(212,132,90,0.15)}
-[data-theme="light"]{--bg:#f5f3ee;--bg2:#eceae3;--bg3:#e3e0d8;--bg4:#d8d4cb;--border:rgba(0,0,0,0.09);--text:#1a1916;--text2:#5a5850;--text3:#9e9c94;--glow:rgba(212,132,90,0.1)}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);transition:background .4s,color .4s;overflow:hidden}
-#app{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;max-width:430px;margin:0 auto;height:100%;display:flex;flex-direction:column;overflow:hidden}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px;flex-shrink:0}
-.topbar-logo{font-family:'DM Serif Display',serif;font-size:22px;letter-spacing:-.5px}
+/* === VARIABLES === */
+:root{
+  --bg:#f5f0ea;--bg2:#ede8e1;--bg3:#e4dfd7;--bg4:#d0cbc3;
+  --text:#1a1814;--text2:#4a4640;--text3:#8a8480;--border:#d8d3cb;
+  --accent:#d4845a;--accent2:#7b6fcd;--accent3:#5aad8f;--accent4:#e8c547;--red:#e05555;
+  --glow:rgba(212,132,90,.1)
+}
+[data-theme="dark"]{
+  --bg:#0f0f11;--bg2:#1a1a1f;--bg3:#22222a;--bg4:#2a2a35;
+  --text:#f0ede8;--text2:#b0ada8;--text3:#6a6760;--border:#2e2e38;
+  --glow:rgba(212,132,90,.15)
+}
+
+/* === RESET === */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg2);color:var(--text);transition:background .3s,color .3s;-webkit-text-size-adjust:100%}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+input,textarea,select{font-family:'DM Sans',sans-serif;-webkit-appearance:none;-webkit-text-size-adjust:100%}
+
+/* === LAYOUT === */
+#app{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  max-width:430px;margin:0 auto;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+}
+
+/* Topbar */
+.topbar{
+  flex-shrink:0;
+  padding-top:env(safe-area-inset-top,44px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding-left:20px;padding-right:20px;padding-bottom:12px;
+  background:var(--bg);z-index:10;
+}
+
+/* Screens */
+.screens{flex:1;min-height:0;position:relative;overflow:hidden}
+.screen{
+  position:absolute;inset:0;
+  overflow-y:auto;overflow-x:hidden;
+  padding:16px 16px 24px;
+  visibility:hidden;
+  opacity:0;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{visibility:visible;opacity:1}
+
+/* Nav */
+.nav-wrap{flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg2);border-top:1px solid var(--border);z-index:10}
+.nav{display:flex;padding:6px 4px 0;}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:6px 2px;
+  background:transparent;border:none;color:inherit;
+  border-radius:10px;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.nav-item .ni{font-size:20px;line-height:1;display:block}
+.nav-item .nl{font-size:10px;color:var(--text3);font-weight:500;display:block}
+.nav-item.active .nl{color:var(--accent)}
+
+/* FAB — completely outside #app, position:fixed */
+#fab-btn{
+  position:fixed;
+  bottom:calc(64px + env(safe-area-inset-bottom,0px));
+  right:20px;
+  width:52px;height:52px;
+  border-radius:50%;
+  background:var(--accent);
+  border:none;color:#fff;
+  font-size:26px;
+  box-shadow:0 4px 20px rgba(212,132,90,.4);
+  z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* Modal — completely outside #app, position:fixed */
+#modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.75);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  z-index:1000;
+  display:flex;align-items:flex-end;
+  visibility:hidden;opacity:0;
+  transition:opacity .25s,visibility .25s;
+}
+#modal-overlay.open{visibility:visible;opacity:1}
+#modal-content{
+  width:100%;
+  background:var(--bg2);
+  border-radius:28px 28px 0 0;
+  padding:20px 20px calc(28px + env(safe-area-inset-bottom,20px));
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  border-top:1px solid var(--border);
+  max-height:90vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#modal-overlay.open #modal-content{transform:translateY(0)}
+
+/* Toast — completely outside #app, position:fixed */
+#toast{
+  position:fixed;
+  bottom:calc(72px + env(safe-area-inset-bottom,0px));
+  left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:10px 20px;
+  font-size:14px;z-index:2000;
+  visibility:hidden;opacity:0;
+  transition:all .25s;pointer-events:none;
+  white-space:nowrap;max-width:calc(100% - 40px);
+}
+#toast.show{visibility:visible;opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* === TYPOGRAPHY === */
+.topbar-logo{font-family:'DM Serif Display',serif;font-size:22px}
 .topbar-logo span{color:var(--accent)}
 .topbar-right{display:flex;gap:8px}
-.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all .2s;color:var(--text2)}
-.screens{flex:1;overflow:hidden;position:relative;min-height:0}
-.screen{position:absolute;top:0;left:0;right:0;bottom:80px;overflow-y:auto;padding:12px 16px 100px;opacity:0;pointer-events:none;transform:translateY(12px);transition:all .3s cubic-bezier(.4,0,.2,1)}
-.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
-.screen::-webkit-scrollbar{display:none}
-.nav-wrap{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;background:var(--bg2);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:9999;padding-bottom:max(env(safe-area-inset-bottom,0px),16px)}
-.nav{display:flex;padding:8px 4px 0;gap:0}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;cursor:pointer;border-radius:10px;transition:all .2s}
-.nav-item .ni{font-size:20px;transition:transform .2s}
-.nav-item .nl{font-size:10px;font-weight:500;color:var(--text3);white-space:nowrap}
-.nav-item.active .nl{color:var(--accent)}
-.nav-item.active .ni{transform:translateY(-2px)}
-.section-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px}
-.section-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:12px}
-.card-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
-.home-time{font-size:13px;color:var(--text3);margin-bottom:6px}
-.home-name{font-family:'DM Serif Display',serif;font-size:32px;line-height:1.1;margin-bottom:4px}
-.home-name em{color:var(--accent);font-style:italic}
-.frase-card{background:linear-gradient(135deg,var(--accent),#c06830);border:none;padding:22px;position:relative;overflow:hidden;margin-bottom:12px;border-radius:20px}
-.frase-card::before{content:'"';position:absolute;top:-10px;right:10px;font-family:'DM Serif Display',serif;font-size:120px;color:rgba(255,255,255,.1);line-height:1}
-.frase-text{font-family:'DM Serif Display',serif;font-size:17px;color:#fff;line-height:1.4;margin-bottom:10px;position:relative}
-.frase-refresh{font-size:12px;color:rgba(255,255,255,.7);cursor:pointer}
-.quick-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 12px;text-align:center}
-.stat-num{font-family:'DM Serif Display',serif;font-size:26px;line-height:1}
-.stat-label{font-size:10px;color:var(--text3);margin-top:4px}
-.top3-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:12px}
-.top3-title{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
-.top3-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.top3-item:last-child{border-bottom:none}
-.top3-num{font-family:'DM Serif Display',serif;font-size:20px;color:var(--accent);width:24px;flex-shrink:0}
-.top3-text{flex:1;font-size:14px;color:var(--text);background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif}
-.top3-check{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all .2s;flex-shrink:0;color:transparent}
-.top3-check.done{background:var(--accent3);border-color:var(--accent3);color:#fff}
-.agenda-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.agenda-item:last-child{border-bottom:none}
-.agenda-time{font-size:12px;color:var(--text3);width:48px;flex-shrink:0}
-.agenda-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.habitos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.habito-item{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.habito-item.done-item{opacity:.6}
-.habito-item.done-item .habito-name{text-decoration:line-through}
-.habito-top{display:flex;align-items:center;justify-content:space-between;width:100%}
-.habito-icon{font-size:24px}
-.habito-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .25s;color:transparent;flex-shrink:0}
-.habito-check.done{background:var(--accent3);border-color:var(--accent3);color:#fff}
-.habito-name{font-size:13px;font-weight:500;line-height:1.3;word-break:break-word}
-.habito-streak{font-size:12px;color:var(--text3)}
-.racha-bar{display:flex;gap:3px;margin-top:4px;width:100%}
-.racha-day{flex:1;height:5px;border-radius:3px;background:var(--bg4)}
-.racha-day.done{background:var(--accent3)}
-.racha-day.today{background:var(--accent)}
-/* tabs inside sections */
-.tabs{display:flex;gap:0;margin-bottom:16px;background:var(--bg3);border-radius:14px;padding:4px}
-.tab{flex:1;text-align:center;padding:8px 4px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-radius:10px;transition:all .2s}
-.tab.active{background:var(--bg2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.section-title{font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:4px}
+.section-sub{font-size:14px;color:var(--text3);margin-bottom:16px}
 
-/* long-press context menu */
-.ctx-menu{position:fixed;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:8px;z-index:1000;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:fadeUp .15s ease}
-.ctx-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;font-size:15px;cursor:pointer;color:var(--text);-webkit-tap-highlight-color:transparent}
-.ctx-item:active{background:var(--bg3)}
-.ctx-item.danger{color:var(--red)}
-.ctx-overlay{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.3);backdrop-filter:blur(2px)}
-/* prevent iOS native selection/share on long press */
-.no-select{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.dragging{opacity:.5;transform:scale(.97);transition:opacity .15s,transform .15s}
-.drag-over{border:2px solid var(--accent)!important;transform:scale(1.02)}
-.nota-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;margin-right:6px;margin-bottom:6px;cursor:pointer;border:1.5px solid var(--border);color:var(--text2);background:transparent}
-.nota-tag.active{border-color:var(--accent);color:var(--accent)}
-.nota-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;position:relative}
-.nota-card-tag{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
-.nota-card-text{font-size:14px;line-height:1.5}
-.nota-card-date{font-size:12px;color:var(--text3);margin-top:8px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.cal-month{font-family:'DM Serif Display',serif;font-size:22px}
-.cal-nav{display:flex;gap:8px}
-.cal-btn{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
-.cal-weekday{text-align:center;font-size:10px;font-weight:600;color:var(--text3);padding:4px 0}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:13px;border-radius:50%;cursor:pointer;color:var(--text2);position:relative}
-.cal-day.today{background:var(--accent);color:#fff;font-weight:600}
-.cal-day.has-event::after{content:'';position:absolute;bottom:3px;width:4px;height:4px;border-radius:50%;background:var(--accent3)}
-.cal-day.today.has-event::after{background:#fff}
-.cal-day.other-month{opacity:.3}
-.evento-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.evento-item:last-child{border-bottom:none}
-.balance-card{background:linear-gradient(135deg,var(--accent2),#5548aa);border:none;border-radius:24px;padding:28px 24px;margin-bottom:14px}
-.balance-label{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:6px}
-.balance-amount{font-family:'DM Serif Display',serif;font-size:40px;color:#fff;line-height:1;margin-bottom:4px}
-.balance-sub{font-size:13px;color:rgba(255,255,255,.6)}
-.fin-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.fin-row:last-child{border-bottom:none}
-.fin-icon{font-size:20px;width:38px;height:38px;background:var(--bg3);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.fin-info{flex:1}
-.fin-name{font-size:14px}
-.fin-date{font-size:12px;color:var(--text3)}
-.fin-amount{font-size:15px;font-weight:600;flex-shrink:0}
-.fin-amount.neg{color:var(--red)}
-.fin-amount.pos{color:var(--accent3)}
-.level-bar{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin:8px 0 4px}
-.level-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent4));transition:width 1s}
-.diario-day{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:12px}
-.diario-date{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
-.diario-textarea{width:100%;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);resize:none;min-height:100px;line-height:1.7}
-.logro-chip{display:inline-flex;align-items:center;padding:5px 12px;border-radius:20px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);cursor:pointer;margin:3px}
-.divider{height:1px;background:var(--border);margin:14px 0}
+/* === CARDS === */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:16px 18px;margin-bottom:12px}
+.card-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
 .row-between{display:flex;align-items:center;justify-content:space-between}
-.books-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
-.book-card{cursor:pointer}
-.book-cover{width:100%;aspect-ratio:2/3;border-radius:10px;object-fit:cover;background:var(--bg3);border:1px solid var(--border);display:block}
-.book-cover-ph{width:100%;aspect-ratio:2/3;border-radius:10px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px}
-.book-title{font-size:12px;font-weight:500;margin-top:6px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.book-author{font-size:10px;color:var(--text3);margin-top:2px}
-.book-status{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:4px}
-.book-status.leyendo{background:rgba(212,132,90,.2);color:var(--accent)}
-.book-status.pendiente{background:rgba(123,111,205,.2);color:var(--accent2)}
-.book-status.leido{background:rgba(90,173,143,.2);color:var(--accent3)}
-.book-progress{margin-top:6px}
-.book-progress-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:2px}
-.book-progress-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s}
-.book-progress-text{font-size:10px;color:var(--text3)}
-.series-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.serie-card{cursor:pointer;border-radius:14px;overflow:hidden;background:var(--bg2);border:1px solid var(--border)}
-.serie-poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:var(--bg3);display:block}
-.serie-poster-ph{width:100%;aspect-ratio:2/3;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:40px}
-.serie-info{padding:10px}
-.serie-title{font-size:13px;font-weight:500;line-height:1.3}
-.serie-status{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:6px}
-.serie-status.viendo{background:rgba(212,132,90,.2);color:var(--accent)}
-.serie-status.pendiente{background:rgba(123,111,205,.2);color:var(--accent2)}
-.serie-status.visto{background:rgba(90,173,143,.2);color:var(--accent3)}
-.serie-progress{margin-top:8px}
-.serie-progress-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:2px}
-.serie-progress-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s}
-.serie-progress-text{font-size:10px;color:var(--text3)}
-.proyecto-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px}
-.subtarea{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
-.subtarea:last-child{border-bottom:none}
-.sub-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;flex-shrink:0;color:transparent}
+
+/* === HOME === */
+.home-time{font-size:13px;color:var(--text3);margin-bottom:4px}
+.home-name{font-family:'DM Serif Display',serif;font-size:34px;line-height:1.1;margin-bottom:4px}
+.home-name em{color:var(--accent);font-style:italic}
+.frase-card{background:var(--accent);border-radius:20px;padding:20px 18px;margin-bottom:16px}
+.frase-text{font-size:16px;font-weight:600;color:#fff;line-height:1.5;margin-bottom:12px}
+.frase-refresh{font-size:12px;color:rgba(255,255,255,.75);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:4px}
+.quick-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:14px 10px;text-align:center}
+.stat-num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:4px}
+.level-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:6px}
+.level-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .5s}
+.top3-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:16px 18px;margin-bottom:12px}
+.top3-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.top3-num{font-family:'DM Serif Display',serif;font-size:22px;color:var(--accent);width:24px;flex-shrink:0}
+.top3-input{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif}
+.top3-check{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:transparent;transition:all .2s;background:transparent;touch-action:manipulation}
+.top3-check.done{background:var(--accent3);border-color:var(--accent3);color:#fff}
+.agenda-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.agenda-time{font-size:12px;color:var(--text3);width:40px;flex-shrink:0}
+.agenda-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* === HABITS === */
+.habitos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.habito-item{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;cursor:pointer}
+.habito-item.done-item{opacity:.55}
+.habito-item.done-item .habito-name{text-decoration:line-through}
+.habito-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.habito-icon{font-size:22px}
+.habito-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;flex-shrink:0;transition:all .2s;background:transparent}
+.habito-check.done{background:var(--accent3);border-color:var(--accent3);color:#fff}
+.habito-name{font-size:13px;font-weight:500;line-height:1.3}
+.habito-streak{font-size:11px;color:var(--text3);margin-top:4px}
+.racha-bar{display:flex;gap:3px;margin-top:6px}
+.racha-day{flex:1;height:4px;border-radius:2px;background:var(--bg4)}
+.racha-day.done{background:var(--accent3)}
+
+/* === NOTAS === */
+.nota-tag{display:inline-block;padding:6px 14px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);font-size:13px;cursor:pointer;margin:0 4px 8px 0;touch-action:manipulation}
+.nota-tag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.nota-item{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.nota-cat{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.nota-texto{font-size:14px;line-height:1.5;color:var(--text)}
+
+/* === CALENDARIO === */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-family:'DM Serif Display',serif;font-size:20px}
+.cal-nav{display:flex;gap:8px}
+.cal-btn{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;touch-action:manipulation}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-weekday{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:4px 0}
+.cal-day{text-align:center;padding:8px 4px;font-size:14px;cursor:pointer;border-radius:8px;position:relative;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.cal-day.today{background:var(--accent);color:#fff;font-weight:600;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.cal-day.other-month{opacity:.4}
+
+/* === FINANZAS === */
+.balance-card{background:linear-gradient(135deg,var(--accent2),#5548aa);border-radius:20px;padding:20px;margin-bottom:12px;text-align:center}
+.balance-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:8px}
+.balance-amount{font-family:'DM Serif Display',serif;font-size:44px;color:#fff;margin-bottom:4px}
+.balance-sub{font-size:13px;color:rgba(255,255,255,.7)}
+.fin-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+
+/* === PLAY === */
+.books-grid,.series-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.book-card,.serie-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;-webkit-touch-callout:none;-webkit-user-select:none;cursor:pointer}
+.book-cover,.serie-cover{width:100%;height:140px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}
+.book-cover img,.serie-cover img{width:100%;height:100%;object-fit:cover}
+.book-info,.serie-info{padding:10px 12px}
+.book-title,.serie-title{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:3px;color:var(--text)}
+.book-author,.serie-meta{font-size:11px;color:var(--text3);margin-bottom:6px}
+.book-prog,.serie-prog{height:3px;background:var(--bg4);border-radius:2px;margin-top:6px}
+.book-prog-fill,.serie-prog-fill{height:100%;background:var(--accent3);border-radius:2px}
+
+/* === PROYECTOS === */
+.proyecto-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px}
+.proyecto-title{font-size:16px;font-weight:500;margin-bottom:10px;color:var(--text)}
+.subtarea-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.sub-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s;background:transparent;touch-action:manipulation;cursor:pointer}
 .sub-check.done{background:var(--accent3);border-color:var(--accent3);color:#fff}
-.sub-text{flex:1;font-size:14px}
-.sub-text.done{text-decoration:line-through;opacity:.5}
-.revision-section{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:12px}
-.revision-q{font-size:14px;font-weight:500;margin-bottom:10px}
-.revision-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);resize:none;outline:none;min-height:80px;line-height:1.6}
-.revision-textarea:focus{border-color:var(--accent)}
-.revision-textarea::placeholder{color:var(--text3)}
-.semana-stat{text-align:center;background:var(--bg3);border-radius:14px;padding:14px 10px}
-.semana-num{font-family:'DM Serif Display',serif;font-size:32px}
-.semana-label{font-size:10px;color:var(--text3);margin-top:2px}
-.fab{position:fixed;bottom:90px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--accent);box-shadow:0 4px 20px rgba(212,132,90,.4);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;z-index:10000;border:none;color:#fff;transition:all .2s}
-.fab:active{transform:scale(.92)}
-.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{width:100%;background:var(--bg2);border-radius:28px 28px 0 0;padding:24px 20px 40px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);border-top:1px solid var(--border);max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.modal-overlay.open .modal{transform:translateY(0)}
-.modal-handle{width:36px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 20px}
-.modal-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:16px}
-.modal-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.modal-tag{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);color:var(--text2);cursor:pointer;background:transparent}
-.modal-tag.selected{border-color:var(--accent);color:var(--accent);background:var(--glow)}
-.modal-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;margin-bottom:10px}
-.modal-input:focus{border-color:var(--accent)}
-.modal-input::placeholder{color:var(--text3)}
-.modal-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);resize:none;height:90px;outline:none;margin-bottom:10px}
-.modal-textarea:focus{border-color:var(--accent)}
-.modal-textarea::placeholder{color:var(--text3)}
-.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.btn-primary{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;touch-action:manipulation}
-.btn-primary:active{opacity:.9}
-select.modal-input{appearance:none;-webkit-appearance:none}
-.empty{text-align:center;padding:40px 20px;color:var(--text3)}
-.empty .ei{font-size:40px;margin-bottom:12px}
-.empty .et{font-size:14px}
-.toast{position:absolute;top:70px;left:20px;right:20px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 18px;font-size:14px;z-index:500;transform:translateY(-20px);opacity:0;transition:all .3s;pointer-events:none}
-.toast.show{transform:translateY(0);opacity:1}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.fu{animation:fadeUp .4s ease forwards}
-.fu1{animation-delay:.05s;opacity:0}.fu2{animation-delay:.1s;opacity:0}.fu3{animation-delay:.15s;opacity:0}.fu4{animation-delay:.2s;opacity:0}.fu5{animation-delay:.25s;opacity:0}
+.sub-texto{font-size:14px;color:var(--text)}
+.sub-texto.done{text-decoration:line-through;color:var(--text3)}
+
+/* === DIARIO === */
+.diario-entrada{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+.diario-fecha{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;color:var(--accent);letter-spacing:0;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.diario-texto{font-size:15px;line-height:1.8;color:var(--text2)}
+.diario-textarea{width:100%;min-height:200px;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);line-height:1.7;resize:none}
+.logro-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;margin:6px 6px 0 0;touch-action:manipulation;cursor:pointer}
+.logros-wrap{display:flex;flex-wrap:wrap;margin-bottom:16px;margin-top:4px}
+.revision-section{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.revision-q{font-size:14px;font-weight:500;margin-bottom:10px;color:var(--text)}
+.revision-textarea{width:100%;min-height:80px;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);line-height:1.6;resize:none}
+
+/* === TABS === */
+.tabs{display:flex;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{flex:1;text-align:center;padding:8px 6px;font-size:13px;font-weight:500;color:var(--text3);border-radius:10px;white-space:nowrap;min-width:0;background:transparent;border:none;touch-action:manipulation;font-family:'DM Sans',sans-serif}
+.tab.active{background:var(--bg);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+
+/* === MODAL INTERNALS === */
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:16px;color:var(--text)}
+.modal-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:15px;color:var(--text);outline:none;margin-bottom:10px;-webkit-appearance:none;display:block}
+.modal-textarea{width:100%;min-height:100px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:15px;color:var(--text);outline:none;margin-bottom:10px;resize:none;-webkit-appearance:none;display:block}
+.modal-row{display:flex;gap:10px;margin-bottom:10px}
+.modal-row .modal-input{margin-bottom:0;flex:1}
+.modal-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.modal-tag{padding:6px 14px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);font-size:13px;color:var(--text);-webkit-appearance:none;touch-action:manipulation;cursor:pointer}
+.modal-tag.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;touch-action:manipulation;margin-top:6px;display:block;text-align:center}
+.btn-secondary{width:100%;padding:12px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:14px;font-size:14px;touch-action:manipulation;margin-top:8px;display:block}
+
+/* === MISC === */
+.ctx-menu{position:fixed;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:8px;z-index:9999;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.ctx-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;font-size:15px;color:var(--text);touch-action:manipulation;cursor:pointer;background:transparent;border:none;width:100%;text-align:left}
+.ctx-item.danger{color:var(--red)}
+.ctx-overlay{position:fixed;inset:0;z-index:9998;background:transparent}
+.no-select{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.dragging{opacity:.3}
+.empty{text-align:center;padding:32px 16px;color:var(--text3)}
+.ei{font-size:40px;margin-bottom:10px}
+.et{font-size:15px}
+.semana-stat{text-align:center}
+.semana-num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text)}
+.semana-label{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* === ANIMATIONS === */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fu{opacity:0;animation:fadeUp .35s ease forwards}
+.fu1{animation-delay:.05s}.fu2{animation-delay:.1s}.fu3{animation-delay:.15s}
+.fu4{animation-delay:.2s}.fu5{animation-delay:.25s}
+
+.subtarea{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.sub-check{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s;background:transparent;touch-action:manipulation;cursor:pointer;}
+.sub-check.done{background:var(--accent3);border-color:var(--accent3);color:#fff;}
+.sub-text{font-size:14px;color:var(--text);}
+.sub-text.done{text-decoration:line-through;color:var(--text3);}
+
+input.top3-text{
+  -webkit-appearance:none;
+  appearance:none;
+  background:transparent !important;
+  border:none !important;
+  outline:none !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  color:var(--text);
+  font-size:15px;
+  font-family:'DM Sans',sans-serif;
+  width:100%;
+  padding:0;
+}
+input.top3-text::placeholder{color:var(--text3);}
+input.top3-text:focus{
+  -webkit-appearance:none;
+  background:transparent !important;
+  border:none !important;
+  outline:none !important;
+  box-shadow:none !important;
+}
+
+.nota-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px;}
+.nota-card-tag{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+.nota-card-text{font-size:16px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:8px;}
+.nota-card-date{font-size:11px;color:var(--text3);}
+
+.book-progress{padding:0 10px 10px;}
+.book-progress-bar{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+.book-progress-fill{height:100%;background:var(--accent3);border-radius:3px;transition:width .4s;}
+.book-progress-text{font-size:10px;color:var(--text3);}
+
+.book-status{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.5px;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+.book-status.leyendo{background:rgba(90,173,143,.15);color:var(--accent3)}
+.book-status.leido{background:rgba(90,173,143,.25);color:var(--accent3)}
+.book-status.pendiente{background:var(--bg3);color:var(--text3)}
+.book-progress{padding:0 10px 10px}
+.book-progress-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.book-progress-fill{height:100%;background:var(--accent3);border-radius:2px;transition:width .4s}
+.book-progress-text{font-size:10px;color:var(--text3);font-weight:500}
 </style>
 </head>
 <body>
+
+<!-- APP: topbar + screens + nav only -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">Fran<span>OS</span></div>
     <div class="topbar-right">
-      <div class="icon-btn" id="theme-btn" onclick="toggleTheme()">🌙</div>
-      <div class="icon-btn">🔔</div>
+      <button class="icon-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button class="icon-btn">🔔</button>
     </div>
   </div>
+
   <div class="screens">
-    <div class="screen active" id="screen-home">
+<div class="screen active" id="screen-home">
       <div class="fu fu1" style="margin-bottom:24px">
         <div class="home-time" id="home-time"></div>
         <div class="home-name" id="home-greeting">Buen día, <em>Fran.</em></div>
@@ -250,7 +376,7 @@ select.modal-input{appearance:none;-webkit-appearance:none}
           </div>
           <div id="stats-home-content" style="display:none;margin-top:14px">
             <div class="row-between" style="margin-bottom:4px">
-              <div style="font-size:14px" id="stats-nivel">⚡ Nivel 1 — Cimientos</div>
+              <div style="font-size:14px" id="stats-nivel">⚡ Nivel 1 — Base</div>
               <div style="font-size:12px;color:var(--text3)" id="stats-xp">0 / 500 XP</div>
             </div>
             <div class="level-bar"><div class="level-fill" id="stats-xp-bar" style="width:0%"></div></div>
@@ -264,25 +390,16 @@ select.modal-input{appearance:none;-webkit-appearance:none}
       </div>
 
       <!-- SUGERENCIA DEL DÍA -->
-      <div class="card fu" style="background:linear-gradient(135deg,var(--accent2),#5548aa);border:none;margin-bottom:12px" id="sugerencia-card">
-        <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:8px">✨ sugerencia del día</div>
+      <div class="card fu" style="background:linear-gradient(135deg,var(--accent2),#5548aa);border:none;margin-bottom:12px;cursor:pointer" id="sugerencia-card" onclick="irASugerencia()">
+        <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:8px">✨ Sugerencia del día</div>
         <div id="sugerencia-text" style="font-size:15px;color:#fff;line-height:1.5;margin-bottom:12px">Cargando sugerencia...</div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <div onclick="loadSugerencia()" style="font-size:12px;color:rgba(255,255,255,.7);cursor:pointer">↻ otra</div>
+        <div style="display:flex;gap:16px;align-items:center">
+          <div style="font-size:12px;color:rgba(255,255,255,.9);font-weight:500">Ir a hacerlo →</div>
+          <div onclick="event.stopPropagation();loadSugerencia()" style="font-size:12px;color:rgba(255,255,255,.6);cursor:pointer">↻ otra</div>
         </div>
       </div>
 
-      <!-- ASISTENTE IA -->
-      <div class="card fu" style="margin-bottom:12px;cursor:pointer;border-color:rgba(212,132,90,.3)" onclick="openAsistente()">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:40px;height:40px;border-radius:50%;background:var(--glow);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🤖</div>
-          <div>
-            <div style="font-size:14px;font-weight:500;color:var(--text)">Hablar con el asistente</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Contame cómo estás y te ayudo a organizar el día</div>
-          </div>
-          <div style="margin-left:auto;color:var(--text3)">→</div>
-        </div>
-      </div>
+
 
       <div class="top3-card fu fu4">
         <div class="top3-title">🎯 Tus 3 prioridades de hoy</div>
@@ -298,26 +415,112 @@ select.modal-input{appearance:none;-webkit-appearance:none}
       </div>
 
     </div>
-
-    <div class="screen" id="screen-habitos">
-      <div class="section-title fu fu1">Hábitos</div>
-      <div class="section-sub fu fu1">Tu constancia, día a día.</div>
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-label">📊 esta semana</div>
-        <div id="habitos-semana-chart" style="display:flex;justify-content:space-between;align-items:flex-end;height:80px;gap:6px;margin-top:4px"></div>
+<div class="screen" id="screen-yo">
+      <div class="section-title fu fu1">Yo</div>
+      <div class="tabs fu fu1" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="tab active" onclick="switchTab('yo','habitos')">✅ Hábitos</div>
+        <div class="tab" onclick="switchTab('yo','entreno')">💪 Entreno</div>
+        <div class="tab" onclick="switchTab('yo','nutricion')">🥗 Nutrición</div>
+        <div class="tab" onclick="switchTab('yo','salud')">🏥 Salud</div>
       </div>
-      <div id="habitos-list"></div>
-      <div style="border:1.5px dashed var(--border);border-radius:16px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;opacity:.7;margin-bottom:10px" onclick="openModal('habito')">
-        <span style="font-size:20px">＋</span><span style="font-size:14px;color:var(--text2)">Agregar hábito</span>
+
+      <!-- TAB: HÁBITOS -->
+      <div id="yo-tab-habitos">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-label">📊 Esta semana</div>
+          <div id="habitos-semana-chart" style="display:flex;justify-content:space-between;align-items:flex-end;height:80px;gap:6px;margin-top:4px"></div>
+        </div>
+        <div id="habitos-list"></div>
+        <div style="border:1.5px dashed var(--border);border-radius:16px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;opacity:.7;margin-bottom:10px" onclick="openModal('habito')">
+          <span style="font-size:20px">＋</span><span style="font-size:14px;color:var(--text2)">Agregar hábito</span>
+        </div>
+      </div>
+
+      <!-- TAB: ENTRENO -->
+      <div id="yo-tab-entreno" style="display:none;overflow-y:auto">
+        <div id="perfil-entreno-card" class="card fu fu1" style="margin-bottom:14px"></div>
+        <div class="row-between" style="margin-bottom:12px">
+          <div class="section-title" style="font-size:20px;margin:0">Sesiones recientes</div>
+          <div style="font-size:12px;color:var(--accent);cursor:pointer" onclick="openModal('entreno')">+ Registrar</div>
+        </div>
+        <div id="entreno-list"></div>
+        <div class="card fu" style="margin-top:8px">
+          <div class="card-label">🤖 Sugerencia de hoy</div>
+          <div id="entreno-sugerencia" style="font-size:14px;color:var(--text2);line-height:1.6">Cargando sugerencia...</div>
+          <div style="font-size:12px;color:var(--accent);cursor:pointer;margin-top:10px" onclick="loadEntrenoSugerencia()">↻ otra sugerencia</div>
+        </div>
+        <div class="card fu" style="margin-top:8px">
+          <div class="card-label">📊 Sesiones esta semana</div>
+          <div id="entreno-chart" style="display:flex;justify-content:space-between;align-items:flex-end;height:70px;gap:6px;margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- TAB: NUTRICIÓN -->
+      <div id="yo-tab-nutricion" style="display:none">
+        <!-- Peso -->
+        <div id="peso-card" class="card fu fu1" style="margin-bottom:12px"></div>
+        <!-- Agua del día -->
+        <div class="card fu fu2" style="margin-bottom:12px">
+          <div class="row-between" style="margin-bottom:8px">
+            <div class="card-label" style="margin:0">💧 Agua hoy</div>
+            <div style="font-size:13px;color:var(--accent)" id="agua-texto">0 / 2000 ml</div>
+          </div>
+          <div class="level-bar"><div class="level-fill" id="agua-bar" style="width:0%;background:var(--accent2)"></div></div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <div onclick="addAgua(250)" style="padding:6px 14px;background:var(--bg3);border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border)">+250ml</div>
+            <div onclick="addAgua(500)" style="padding:6px 14px;background:var(--bg3);border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border)">+500ml</div>
+            <div onclick="addAgua(750)" style="padding:6px 14px;background:var(--bg3);border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border)">+750ml</div>
+          </div>
+        </div>
+        <!-- Comidas del día -->
+        <div class="card fu fu3" style="margin-bottom:12px">
+          <div class="row-between" style="margin-bottom:10px">
+            <div class="card-label" style="margin:0">🍽️ Comidas de hoy</div>
+            <div style="font-size:12px;color:var(--accent);cursor:pointer" onclick="openModal('comida')">+ Agregar</div>
+          </div>
+          <div id="comidas-list"></div>
+          <div id="calorias-resumen" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--text2)"></div>
+        </div>
+        <!-- Receta sugerida -->
+        <div class="card fu fu4">
+          <div class="card-label">👨‍🍳 Receta sugerida</div>
+          <div id="receta-sugerida" style="font-size:14px;color:var(--text2);line-height:1.6">Cargando receta...</div>
+          <div style="font-size:12px;color:var(--accent);cursor:pointer;margin-top:10px" onclick="loadRecetaSugerida()">↻ otra receta</div>
+        </div>
+      </div>
+
+      <!-- TAB: SALUD -->
+      <div id="yo-tab-salud" style="display:none">
+        <!-- Sueño hoy -->
+        <div class="card fu fu1" style="margin-bottom:12px">
+          <div class="row-between" style="margin-bottom:12px">
+            <div class="card-label" style="margin:0">😴 Sueño de anoche</div>
+            <div style="font-size:12px;color:var(--accent);cursor:pointer" onclick="openModal('sueno')">Registrar</div>
+          </div>
+          <div id="sueno-hoy"></div>
+          <div id="sueno-chart" style="display:flex;justify-content:space-between;align-items:flex-end;height:70px;gap:6px;margin-top:14px"></div>
+        </div>
+        <!-- Turnos médicos -->
+        <div class="card fu fu2" style="margin-bottom:12px">
+          <div class="row-between" style="margin-bottom:12px">
+            <div class="card-label" style="margin:0">🏥 Turnos y chequeos</div>
+            <div style="font-size:12px;color:var(--accent);cursor:pointer" onclick="openModal('turno')">+ Agregar</div>
+          </div>
+          <div id="turnos-list"></div>
+        </div>
+        <!-- Chequeos sugeridos -->
+        <div class="card fu fu3">
+          <div class="card-label">📋 Chequeos recomendados</div>
+          <div id="chequeos-sugeridos"></div>
+        </div>
       </div>
     </div>
-
-    <div class="screen" id="screen-notas">
-      <div class="section-title fu fu1">Notas & Ideas</div>
+<div class="screen" id="screen-notas">
+      <div class="section-title fu fu1">Notas</div>
       <div class="section-sub fu fu1">Tu segunda memoria.</div>
-      <div style="margin-bottom:16px" class="fu fu2">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" class="fu fu2">
         <span class="nota-tag active" onclick="filterNotas('all',this)">Todas</span>
-        <span class="nota-tag" onclick="filterNotas('idea',this)">💡 Idea</span>
+        <span class="nota-tag" onclick="filterNotas('idea',this)">💡 Ideas</span>
         <span class="nota-tag" onclick="filterNotas('investigar',this)">🔍 Investigar</span>
         <span class="nota-tag" onclick="filterNotas('aprender',this)">📚 Aprender</span>
         <span class="nota-tag" onclick="filterNotas('tarea',this)">✅ Tarea</span>
@@ -325,32 +528,23 @@ select.modal-input{appearance:none;-webkit-appearance:none}
       </div>
       <div id="notas-list"></div>
     </div>
-
-    <div class="screen" id="screen-agenda">
-      <div class="section-title fu fu1" id="agenda-title">Agenda</div>
+<div class="screen" id="screen-agenda">
+      <div class="section-title fu fu1">Agenda</div>
       <div class="tabs fu fu1">
         <div class="tab active" onclick="switchTab('agenda','cal')">📅 Calendario</div>
         <div class="tab" onclick="switchTab('agenda','fin')">💰 Finanzas</div>
       </div>
-
-      <!-- TAB: CALENDARIO -->
       <div id="agenda-tab-cal">
         <div class="card fu fu2">
-          <div class="cal-header">
-            <div class="cal-month" id="cal-label"></div>
-            <div class="cal-nav">
-              <div class="cal-btn" onclick="changeMonth(-1)">←</div>
-              <div class="cal-btn" onclick="changeMonth(1)">→</div>
-            </div>
-          </div>
+          <div class="cal-header"><div class="cal-month" id="cal-label"></div><div class="cal-nav"><div class="cal-btn" onclick="changeMonth(-1)">←</div><div class="cal-btn" onclick="changeMonth(1)">→</div></div></div>
           <div class="cal-grid" id="cal-grid"></div>
         </div>
         <div class="card fu fu2" id="dato-dia-card" style="cursor:pointer" onclick="toggleDatoDia()">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="card-label" style="margin:0">📖 Hoy en la historia</div>
-            <div id="dato-dia-arrow" style="font-size:12px;color:var(--text3);transition:transform .2s">▼</div>
+            <div id="dato-dia-arrow" style="font-size:12px;color:var(--text3)">▼</div>
           </div>
-          <div id="dato-dia-titulo" style="font-size:14px;font-weight:500;color:var(--text);line-height:1.5">—</div>
+          <div id="dato-dia-titulo" style="font-size:14px;font-weight:500;color:var(--text)">—</div>
           <div id="dato-dia-detalle" style="display:none;font-size:13px;color:var(--text2);line-height:1.6;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">—</div>
         </div>
         <div class="card fu fu3">
@@ -361,8 +555,6 @@ select.modal-input{appearance:none;-webkit-appearance:none}
           <div id="eventos-list"></div>
         </div>
       </div>
-
-      <!-- TAB: FINANZAS -->
       <div id="agenda-tab-fin" style="display:none">
         <div class="balance-card fu fu2">
           <div class="balance-label">BALANCE DEL MES</div>
@@ -390,15 +582,12 @@ select.modal-input{appearance:none;-webkit-appearance:none}
         </div>
       </div>
     </div>
-
-    <div class="screen" id="screen-play">
+<div class="screen" id="screen-play">
       <div class="section-title fu fu1">Play</div>
       <div class="tabs fu fu1">
         <div class="tab active" onclick="switchTab('play','libros')">📚 Libros</div>
         <div class="tab" onclick="switchTab('play','series')">🎬 Series</div>
       </div>
-
-      <!-- TAB: LIBROS -->
       <div id="play-tab-libros">
         <div style="margin-bottom:16px" class="fu fu2">
           <span class="nota-tag active" onclick="filterLibros('all',this)">Todos</span>
@@ -412,8 +601,6 @@ select.modal-input{appearance:none;-webkit-appearance:none}
           <div style="font-size:14px;color:var(--text2)">Agregar libro</div>
         </div>
       </div>
-
-      <!-- TAB: SERIES -->
       <div id="play-tab-series" style="display:none">
         <div style="margin-bottom:16px" class="fu fu2">
           <span class="nota-tag active" onclick="filterSeries('all',this)">Todas</span>
@@ -428,8 +615,7 @@ select.modal-input{appearance:none;-webkit-appearance:none}
         </div>
       </div>
     </div>
-
-    <div class="screen" id="screen-proyectos">
+<div class="screen" id="screen-proyectos">
       <div class="section-title fu fu1">Proyectos</div>
       <div class="section-sub fu fu1">Lo que estás construyendo.</div>
       <div id="proyectos-list"></div>
@@ -438,20 +624,15 @@ select.modal-input{appearance:none;-webkit-appearance:none}
         <div style="font-size:14px;color:var(--text2)">Nuevo proyecto</div>
       </div>
     </div>
-
-    <div class="screen" id="screen-diario">
+<div class="screen" id="screen-diario">
       <div class="section-title fu fu1">Diario</div>
       <div class="tabs fu fu1">
         <div class="tab active" onclick="switchTab('diario','entrada')">📓 Hoy</div>
         <div class="tab" onclick="switchTab('diario','semana')">🔄 Semana</div>
       </div>
-
-      <!-- TAB: DIARIO -->
       <div id="diario-tab-entrada">
         <div id="diario-content"></div>
       </div>
-
-      <!-- TAB: REVISION SEMANAL -->
       <div id="diario-tab-semana" style="display:none">
         <div class="quick-stats fu fu2" style="margin-bottom:16px">
           <div class="semana-stat"><div class="semana-num" id="rev-habitos">—</div><div class="semana-label">Hábitos</div></div>
@@ -461,31 +642,36 @@ select.modal-input{appearance:none;-webkit-appearance:none}
         <div class="revision-section fu fu3"><div class="revision-q">🏆 ¿Qué fue lo mejor de esta semana?</div><textarea class="revision-textarea" id="rev-q1" placeholder="El logro más importante..." onblur="saveRevision()"></textarea></div>
         <div class="revision-section fu fu3"><div class="revision-q">😓 ¿Qué no salió como querías?</div><textarea class="revision-textarea" id="rev-q2" placeholder="Sin juzgarte..." onblur="saveRevision()"></textarea></div>
         <div class="revision-section fu fu4"><div class="revision-q">🎯 ¿Qué mejorás la semana que viene?</div><textarea class="revision-textarea" id="rev-q3" placeholder="Una cosa concreta..." onblur="saveRevision()"></textarea></div>
-        <div class="revision-section fu fu5"><div class="revision-q">⚡ Tus 3 prioridades de la semana</div><textarea class="revision-textarea" id="rev-q4" placeholder="1. &#10;2. &#10;3." onblur="saveRevision()"></textarea></div>
-        <button class="btn-primary fu" style="margin-top:8px" onclick="saveRevision();showToast('Revisión guardada ✓')">Guardar ✓</button>
+        <div class="revision-section fu fu5"><div class="revision-q">⚡ Tus 3 prioridades</div><textarea class="revision-textarea" id="rev-q4" placeholder="1. &#10;2. &#10;3." onblur="saveRevision()"></textarea></div>
+        <button class="btn-primary fu" onclick="saveRevision();showToast('Revisión guardada ✓');earnXP('diario-uso',1,1);if(nowAR().getDay()===0){earnXP('diario-semana-1',1,1);earnXP('diario-semana-2',1,1);earnXP('diario-semana-3',1,1);}">Guardar ✓</button>
       </div>
-    </div><!-- /screens -->
-
-  <div class="nav-wrap">
-    <div class="nav">
-      <div class="nav-item active" onclick="goTo('home',this)"><div class="ni">🏠</div><div class="nl">Inicio</div></div>
-      <div class="nav-item" onclick="goTo('habitos',this)"><div class="ni">✅</div><div class="nl">Hábitos</div></div>
-      <div class="nav-item" onclick="goTo('notas',this)"><div class="ni">💡</div><div class="nl">Notas</div></div>
-      <div class="nav-item" onclick="goTo('agenda',this)"><div class="ni">🗓️</div><div class="nl">Agenda</div></div>
-      <div class="nav-item" onclick="goTo('play',this)"><div class="ni">🎮</div><div class="nl">Play</div></div>
-      <div class="nav-item" onclick="goTo('proyectos',this)"><div class="ni">🚀</div><div class="nl">Proyectos</div></div>
-      <div class="nav-item" onclick="goTo('diario',this)"><div class="ni">📓</div><div class="nl">Diario</div></div>
     </div>
   </div>
 
-  <button class="fab" id="fab-btn" onclick="openModal('captura')">＋</button>
-  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-    <div class="modal" id="modal-content"></div>
+  <div class="nav-wrap">
+    <div class="nav">
+      <button class="nav-item active" onclick="goTo('home',this)"><span class="ni">🏠</span><span class="nl">Inicio</span></button>
+      <button class="nav-item" onclick="goTo('yo',this)"><span class="ni">💎</span><span class="nl">Yo</span></button>
+      <button class="nav-item" onclick="goTo('notas',this)"><span class="ni">💡</span><span class="nl">Notas</span></button>
+      <button class="nav-item" onclick="goTo('agenda',this)"><span class="ni">🗓️</span><span class="nl">Agenda</span></button>
+      <button class="nav-item" onclick="goTo('play',this)"><span class="ni">🎮</span><span class="nl">Play</span></button>
+      <button class="nav-item" onclick="goTo('proyectos',this)"><span class="ni">🚀</span><span class="nl">Proyectos</span></button>
+      <button class="nav-item" onclick="goTo('diario',this)"><span class="ni">📓</span><span class="nl">Diario</span></button>
+    </div>
   </div>
-  <div class="toast" id="toast"></div>
 </div>
 
+<!-- FAB, MODAL, TOAST: outside #app so no overflow clipping -->
+<button id="fab-btn" onclick="openModal('captura')">＋</button>
+
+<div id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div id="modal-content"></div>
+</div>
+
+<div id="toast"></div>
+
 <script>
+
 const SB='https://krwhztaukojthcdsnpjn.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtyd2h6dGF1a29qdGhjZHNucGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTQwNDAsImV4cCI6MjA5NDk3MDA0MH0.KLA6zLCOw6H_nhzEbra1QRTaYrUWKY3dH01dP7PnL-w';
 const FRASES=["La constancia no es lo que hacés un buen día. Es lo que hacés cuando no tenés ganas.","No necesitás motivación para empezar. Necesitás empezar para tener motivación.","El orden que no ves no existe. Lo que anotás, existe.","Cada pequeña acción de hoy es una deuda que tu yo futuro no va a tener.","El frío pasa. La satisfacción de haber salido igual, no.","Un día sin avance es un día prestado del futuro.","No hay versión perfecta del día. Solo la que elegís construir.","Las ideas que no anotás no son tuyas. Las perdiste.","Hacé hoy lo que el Fran de mañana te va a agradecer.","La disciplina es elegirte a vos mismo una y otra vez.","Lo que medís, mejora. Lo que ignorás, se estanca.","No hace falta un día perfecto. Hace falta que arranques."];
@@ -532,11 +718,61 @@ function monthStart(){return new Date().toLocaleDateString('en-CA',{timeZone:'Am
 function weekStart(){const dow=nowAR().getDay();const offset=(dow+6)%7;return daysAgo(offset);}
 
 // ── INIT — cada sección independiente, ninguna bloquea a la otra ──
+// ── SESION Y RACHA ──
+let sesionContada = false;
+let sesionTimer = null;
+
+function iniciarTimerSesion(){
+  if(sesionContada) return;
+  sesionTimer = setTimeout(()=>{
+    sesionContada = true;
+    registrarDiaSesion();
+  }, 60000); // 1 minuto
+}
+
+function registrarDiaSesion(){
+  try{
+    const dias = JSON.parse(localStorage.getItem('franos-sesiones-dias')||'[]');
+    const hoy = today();
+    if(!dias.includes(hoy)){
+      dias.push(hoy);
+      localStorage.setItem('franos-sesiones-dias', JSON.stringify(dias.slice(-30)));
+    }
+  }catch{}
+}
+
+
+// ── SISTEMA XP ──
+function getXP(){ try{return parseInt(localStorage.getItem('franos-xp')||'0');}catch{return 0;} }
+function setXP(v){ try{localStorage.setItem('franos-xp',Math.max(0,v));}catch{} }
+
+
+function updateXPDisplay(){
+  const xp=getXP();
+  const nivel=getNivel(xp);
+  const THRESH=[0,0,500,1000,1500,2000];
+  const xpEnNivel=xp-THRESH[nivel];
+  const xpParaSig=nivel<5?(THRESH[nivel+1]-THRESH[nivel]):500;
+  const xpMostrar=nivel<5?xpEnNivel:(xp-2000)%500;
+  const pct=Math.min(100,Math.round((xpMostrar/xpParaSig)*100));
+  const nivEl=document.getElementById('stats-nivel');
+  const xpEl=document.getElementById('stats-xp');
+  const barEl=document.getElementById('stats-xp-bar');
+  const descEl=document.getElementById('stats-nivel-desc');
+  if(nivEl)nivEl.textContent=`⚡ Nivel ${nivel} — ${NIVEL_NOMBRES[nivel]}`;
+  if(xpEl)xpEl.textContent=`${xpMostrar} / ${xpParaSig} XP`;
+  if(barEl)barEl.style.width=pct+'%';
+  if(descEl){descEl.style.display='block';descEl.innerHTML=`${NIVEL_DESCS[nivel]}<br><br><span style="color:var(--text3);font-size:12px">💡 Llevás <strong style="color:var(--accent3)">${xp} XP</strong> en total.</span>`;}
+}
+
+
 function init(){
   updateTime();setInterval(updateTime,30000);
   autoTheme();
   document.getElementById('frase-text').textContent=FRASES[fi];
   registrarSesion();
+  iniciarTimerSesion();
+  updateXPDisplay();
   initNotifications();
   // cada sección carga independientemente
   loadHome();
@@ -563,9 +799,9 @@ function updateTime(){
 function autoTheme(){
   let t;
   try{t=localStorage.getItem('franos-theme');}catch{}
-  if(!t){const h=nowAR().getHours();t=(h>=7&&h<20)?'light':'dark';}
+  if(!t) t='dark'; // default always dark
   document.documentElement.setAttribute('data-theme',t);
-  document.getElementById('theme-btn').textContent=t==='light'?'🌙':'☀';
+  document.getElementById('theme-btn').textContent=t==='light'?'🌙':'☀️';
 }
 function toggleTheme(){
   const c=document.documentElement.getAttribute('data-theme');
@@ -578,17 +814,18 @@ function toggleTheme(){
 function goTo(screen, navItem){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const screenId = screen;
-  const el = document.getElementById('screen-'+screenId);
+  const el = document.getElementById('screen-'+screen);
   if(el) el.classList.add('active');
   if(navItem) navItem.classList.add('active');
-  document.getElementById('fab-btn').style.display = screenId==='diario'?'none':'flex';
-  if(screenId==='agenda'){loadAgenda();loadFinanzas();}
-  if(screenId==='play'){loadLibros(lFilter);loadSeries(sFilter);}
-  if(screenId==='diario'){loadDiario();loadRevision();}
-  if(screenId==='proyectos') loadProyectos();
-  if(screenId==='habitos') loadHabitos();
-  if(screenId==='notas') loadNotas(cFilter);
+  const fab = document.getElementById('fab-btn');
+  if(fab) fab.style.display = screen==='diario'?'none':'flex';
+  if(screen==='home') loadHome();
+  if(screen==='yo') loadHabitos();
+  if(screen==='notas') loadNotas(cFilter);
+  if(screen==='agenda'){loadAgenda();loadFinanzas();}
+  if(screen==='play'){loadLibros(lFilter);loadSeries(sFilter);}
+  if(screen==='proyectos') loadProyectos();
+  if(screen==='diario'){loadDiario();loadRevision();}
 }
 function refreshFrase(){
   fi=(fi+1)%FRASES.length;
@@ -598,7 +835,8 @@ function refreshFrase(){
 }
 function switchTab(section, tab){
   // hide all tabs in section
-  const prefix = section===('diario') ? 'diario-tab' : section===('play') ? 'play-tab' : 'agenda-tab';
+  const prefixMap = {diario:'diario-tab', play:'play-tab', agenda:'agenda-tab', yo:'yo-tab'};
+  const prefix = prefixMap[section] || section+'-tab';
   document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el=>el.style.display='none');
   document.getElementById(`${prefix}-${tab}`).style.display='';
   // update tab buttons
@@ -607,12 +845,18 @@ function switchTab(section, tab){
   event.currentTarget?.classList.add('active');
   // load data for tab
   if(section==='agenda'&&tab==='fin') loadFinanzas();
+  if(section==='yo'){
+    if(tab==='habitos') loadHabitos();
+    else if(tab==='entreno') loadEntrenoTab();
+    else if(tab==='nutricion') loadNutricionTab();
+    else if(tab==='salud') loadSaludTab();
+  }
   if(section==='play'&&tab==='libros') loadLibros(lFilter);
   if(section==='play'&&tab==='series') loadSeries(sFilter);
   if(section==='diario'&&tab==='entrada') loadDiario();
   if(section==='diario'&&tab==='semana') loadRevision();
 }
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function showToast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 // ── HOME ──
 async function loadHome(){
@@ -837,7 +1081,7 @@ async function delFin(id){try{await sb('finanzas','DELETE',null,`?id=eq.${id}`);
 async function loadLibros(filter='all'){
   lFilter=filter;
   try{
-    const q=filter==='all'?'?order=created_at.desc':`?estado=eq.${filter}&order=created_at.desc`;
+    const q=filter==='all'?'?order=orden.asc,created_at.desc':`?estado=eq.${filter}&order=orden.asc,created_at.desc`;
     const libros=await sb('libros','GET',null,q);
     const el=document.getElementById('libros-grid');
     if(!libros.length){el.innerHTML=`<div style="grid-column:1/-1" class="empty"><div class="ei">📚</div><div class="et">Agregá tu primer libro</div></div>`;return;}
@@ -851,8 +1095,8 @@ async function loadLibros(filter='all'){
         <div class="book-cover-ph" style="display:${b.cover_url?'none':'flex'}">📖</div>
         <div class="book-title">${b.titulo}</div>
         <div class="book-author">${b.autor||''}</div>
-        <span class="book-status ${b.estado||'pendiente'}">${b.estado==='leyendo'?'Leyendo':b.estado==='leido'?'Leído':'Pendiente'}</span>
-        ${b.paginas_total>0?`<div class="book-progress"><div class="book-progress-bar"><div class="book-progress-fill" style="width:${pct}%"></div></div><div class="book-progress-text">${b.pagina_actual||0} / ${b.paginas_total} · ${pct}%</div></div>`:''}
+        <span class="book-status ${b.estado||'pendiente'}">${b.estado==='leyendo'?'📖 Leyendo':b.estado==='leido'?'✅ Leído':'⏳ Pendiente'}</span>
+        ${b.paginas_total>0?`<div class="book-progress"><div class="book-progress-bar"><div class="book-progress-fill" style="width:${pct}%"></div></div><div class="book-progress-text">${b.pagina_actual||0} de ${b.paginas_total} págs · ${pct}%</div></div>`:''}
       </div>`;
     }).join('');
   }catch(e){document.getElementById('libros-grid').innerHTML=`<div style="grid-column:1/-1" class="empty"><div class="et">Sin libros aún</div></div>`;console.warn('libros:',e.message);}
@@ -863,7 +1107,7 @@ function filterLibros(f,el){document.querySelectorAll('#screen-libros .nota-tag'
 async function loadSeries(filter='all'){
   sFilter=filter;
   try{
-    const q=filter==='all'?'?order=created_at.desc':`?estado=eq.${filter}&order=created_at.desc`;
+    const q=filter==='all'?'?order=orden.asc,created_at.desc':`?estado=eq.${filter}&order=orden.asc,created_at.desc`;
     const series=await sb('series','GET',null,q);
     const el=document.getElementById('series-grid');
     if(!series.length){el.innerHTML=`<div style="grid-column:1/-1" class="empty"><div class="ei">🎬</div><div class="et">Agregá tu primera serie o peli</div></div>`;return;}
@@ -905,7 +1149,7 @@ async function loadProyectos(){
       return `<div class="proyecto-card" style="animation:fadeUp .4s ease ${.05+i*.05}s both">
         <div class="row-between" style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:22px">${p.icono||'🚀'}</span><div style="font-size:16px;font-weight:500">${p.nombre}</div></div><div style="font-size:12px;color:var(--text3)">${done}/${subs.length}</div></div>
         <div class="level-bar" style="margin:0 0 14px"><div class="level-fill" style="width:${pct}%"></div></div>
-        ${subs.map(s=>`<div class="subtarea"><div class="sub-check ${s.completada?'done':''}" onclick="toggleSub('${s.id}',${s.completada})">✓</div><div class="sub-text ${s.completada?'done':''}">${s.texto}</div><div onclick="delSub('${s.id}')" style="color:var(--text3);cursor:pointer;font-size:14px;padding:4px">✕</div></div>`).join('')}
+        ${subs.map(s=>`<div class="subtarea"><button class="sub-check ${s.completada?'done':''}" onclick="toggleSub('${s.id}',${s.completada})">✓</button><div class="sub-text ${s.completada?'done':''}" style="flex:1;padding:0 8px">${s.texto}</div><button onclick="delSub('${s.id}')" style="background:transparent;border:none;color:var(--text3);font-size:16px;padding:4px 8px;cursor:pointer;touch-action:manipulation;margin-left:auto">✕</button></div>`).join('')}
         <div style="margin-top:12px;display:flex;gap:16px">
           <div style="font-size:13px;color:var(--accent);cursor:pointer" onclick="openModal('subtarea','${p.id}')">+ tarea</div>
           <div style="font-size:13px;color:var(--text3);cursor:pointer" onclick="delProyecto('${p.id}')">eliminar</div>
@@ -924,17 +1168,16 @@ async function loadDiario(){
     const entradas=await sb('diario','GET',null,'?order=fecha.desc&limit=10');
     const hoy=today();const hayHoy=entradas.find(e=>e.fecha===hoy);
     const el=document.getElementById('diario-content');
-    let html=`<div class="diario-day fu fu2">
-      <div class="diario-date">Hoy — ${new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</div>
+    let html=`<div class="diario-entrada fu fu2">
+      <div class="diario-fecha">Hoy — ${new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</div>
       <textarea class="diario-textarea" id="diario-hoy-text" placeholder="¿Qué fue lo mejor de hoy? ¿Qué lograste?" onblur="saveDiarioHoy()">${hayHoy?hayHoy.texto||'':''}</textarea>
-      <div class="divider"></div>
-      <div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Logros del día</div>
-      <div id="logros-hoy" style="display:flex;flex-wrap:wrap;gap:4px">${(hayHoy&&hayHoy.logros?hayHoy.logros:[]).map(l=>`<div class="logro-chip" onclick="this.remove();syncLogros()">${l}</div>`).join('')}</div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin:14px 0 10px">Logros del día</div>
+      <div id="logros-hoy" class="logros-wrap">${(hayHoy&&hayHoy.logros?hayHoy.logros:[]).map(l=>`<div class="logro-chip" onclick="this.remove();syncLogros()">${l}</div>`).join('')}</div>
       <div style="margin-top:12px;font-size:13px;color:var(--accent);cursor:pointer" onclick="openModal('logro')">+ agregar logro</div>
     </div>`;
     entradas.filter(e=>e.fecha!==hoy).forEach((e,i)=>{
       const d=new Date(e.fecha+'T12:00:00');
-      html+=`<div class="diario-day" style="animation:fadeUp .4s ease ${.15+i*.05}s both"><div class="diario-date">${d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</div><div style="font-size:14px;line-height:1.6;color:var(--text)">${e.texto||'<span style="color:var(--text3);font-style:italic">Sin nota</span>'}</div>${e.logros&&e.logros.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:12px">${e.logros.map(l=>`<div class="logro-chip" style="cursor:default">${l}</div>`).join('')}</div>`:''}</div>`;
+      html+=`<div class="diario-entrada" style="animation:fadeUp .4s ease ${.15+i*.05}s both"><div class="diario-fecha">${d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</div><div class="diario-texto">${e.texto||'<span style="color:var(--text3);font-style:italic">Sin nota</span>'}</div>${e.logros&&e.logros.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:12px">${e.logros.map(l=>`<div class="logro-chip" style="cursor:default">${l}</div>`).join('')}</div>`:''}</div>`;
     });
     el.innerHTML=html;
   }catch(e){document.getElementById('diario-content').innerHTML=`<div class="empty"><div class="et">Error cargando diario</div></div>`;console.warn('diario:',e.message);}
@@ -967,8 +1210,11 @@ async function saveRevision(){
 }
 
 // ── STATS ──
-const NIVEL_DESCS=['','Estás poniendo los primeros cimientos. Cada hábito que completás es una piedra que ponés. La racha empieza acá.','La estructura toma forma. No es suerte, es constancia. Estás construyendo algo real.','Ya ves el edificio completo. Nada te detiene. Cuando no tenés ganas, igual aparecés.','Un rascacielos. Tu disciplina ya es parte de quién sos. El 99% no llega acá.','Un monumento a la constancia. Cada día que elegís avanzar es un día que define tu vida.'];
-const NIVEL_NOMBRES=['','Cimientos','Estructura','Edificio','Rascacielos','Monumento'];
+const NIVEL_DESCS=['','Estás poniendo los cimientos. Cada acción suma aunque no lo parezca. El primer paso siempre es el más importante.','Ya hay forma. La constancia empieza a tomar cuerpo. Se nota que esto no fue casualidad.','Se nota el trabajo. Estás construyendo algo real y duradero. La disciplina ya es un hábito en sí mismo.','Pocos llegan acá. Tu disciplina ya es parte de quién sos. Cada día que aparecés es una declaración.','Llegaste. Y seguís. Eso es exactamente lo que te diferencia del resto.'];
+const NIVEL_NOMBRES=['','Base','Estructura','Torre','Rascacielos','Monumento'];
+const NIVEL_XP=[0,0,500,1000,1500,2000];
+function getNivel(xp){ let n=1; for(let i=2;i<=5;i++){if(xp>=NIVEL_XP[i])n=i;} return n; }
+function getXPParaSiguiente(xp){ const n=getNivel(xp); if(n>=5)return null; return NIVEL_XP[n+1]; }
 
 async function loadStats(){
   try{
@@ -1040,7 +1286,7 @@ function toggleStatsHome(){
   const open=el.style.display==='none';
   el.style.display=open?'block':'none';
   if(arrow)arrow.style.transform=open?'rotate(180deg)':'rotate(0)';
-  if(open)loadStats();
+  if(open){updateXPDisplay();loadStats();}
 }
 function toggleNivel(){
   const desc=document.getElementById('stats-nivel-desc');
@@ -1114,13 +1360,119 @@ function openModal(type,extra=''){
   }
   else if(type==='serie-progreso'){const[id,total]=extra.split('|');html+=`<div class="modal-title">¿Qué episodio vas? 🎬</div><input class="modal-input" id="m-sprog" type="number" placeholder="Episodio actual" max="${total}"><div style="font-size:12px;color:var(--text3);margin-bottom:12px">Total: ${total} episodios</div><button class="btn-primary" onclick="guardarProgSerie('${id}','${total}')">Actualizar ✓</button>`;}
   else if(type==='proyecto'){html+=`<div class="modal-title">Nuevo proyecto 🚀</div><input class="modal-input" id="m-pnom" placeholder="Nombre del proyecto"><div class="modal-row"><input class="modal-input" id="m-picon" placeholder="Ícono 🚀" style="margin-bottom:0"><input class="modal-input" id="m-pdesc" placeholder="Descripción" style="margin-bottom:0"></div><button class="btn-primary" onclick="guardarProyecto()" style="margin-top:10px">Crear ✓</button>`;}
+  else if(type==='perfil'){
+    html+=`<div class="modal-title">Tu perfil 💎</div>
+    <div class="modal-row">
+      <input class="modal-input" id="m-ppeso" type="number" step="0.1" placeholder="Peso actual (kg)" style="margin-bottom:0">
+      <input class="modal-input" id="m-pmeta" type="number" step="0.1" placeholder="Peso meta (kg)" style="margin-bottom:0">
+    </div>
+    <div class="modal-row">
+      <input class="modal-input" id="m-paltura" type="number" placeholder="Altura (cm)" style="margin-bottom:0">
+      <select class="modal-input" id="m-pnivel" style="margin-bottom:0">
+        <option value="principiante">Principiante</option>
+        <option value="intermedio">Intermedio</option>
+        <option value="avanzado">Avanzado</option>
+      </select>
+    </div>
+    <select class="modal-input" id="m-pobjetivo">
+      <option value="ganar_musculo">Ganar músculo</option>
+      <option value="perder_peso">Perder peso</option>
+      <option value="resistencia">Mejorar resistencia</option>
+      <option value="bienestar">Salud y bienestar general</option>
+    </select>
+    <button class="btn-primary" onclick="guardarPerfil()">Guardar ✓</button>`;
+  }
+  else if(type==='entreno'){
+    html+=`<div class="modal-title">Registrar sesión 💪</div>
+    <select class="modal-input" id="m-etipo">
+      ${['Calistenia','Natación','Bicicleta','Running','Gym','HIIT','Yoga','Fútbol','Básquet','Otro'].map(t=>`<option value="${t}">${t}</option>`).join('')}
+    </select>
+    <div class="modal-row">
+      <input class="modal-input" id="m-edur" type="number" placeholder="Duración (min)" style="margin-bottom:0">
+      <select class="modal-input" id="m-eint" style="margin-bottom:0">
+        <option value="">Intensidad...</option>
+        <option value="Suave">Suave</option>
+        <option value="Moderada">Moderada</option>
+        <option value="Intensa">Intensa</option>
+      </select>
+    </div>
+    <input class="modal-input" id="m-efecha2" type="date" value="${today()}">
+    <textarea class="modal-textarea" id="m-enotas" placeholder="Notas opcionales (ej: hice 3x10 flexiones)"></textarea>
+    <button class="btn-primary" onclick="guardarEntreno()">Guardar ✓</button>`;
+  }
+  else if(type==='comida'){
+    html+=`<div class="modal-title">Agregar comida 🍽️</div>
+    <input class="modal-input" id="m-cnombre" placeholder="Nombre (ej: Milanesa con ensalada)">
+    <div class="modal-row">
+      <input class="modal-input" id="m-ccal" type="number" placeholder="Calorías aprox." style="margin-bottom:0">
+      <input class="modal-input" id="m-cicono" placeholder="Ícono 🍽️" style="margin-bottom:0">
+    </div>
+    <div class="modal-row">
+      <input class="modal-input" id="m-cprot" type="number" placeholder="Proteínas (g)" style="margin-bottom:0">
+      <input class="modal-input" id="m-ccarb" type="number" placeholder="Carbos (g)" style="margin-bottom:0">
+    </div>
+    <button class="btn-primary" onclick="guardarComida()" style="margin-top:4px">Agregar ✓</button>`;
+  }
+  else if(type==='peso'){
+    html+=`<div class="modal-title">Registrar peso ⚖️</div>
+    <input class="modal-input" id="m-wkg" type="number" step="0.1" placeholder="Peso (kg)">
+    <input class="modal-input" id="m-wfecha" type="date" value="${today()}">
+    <input class="modal-input" id="m-wnota" placeholder="Nota opcional">
+    <button class="btn-primary" onclick="guardarPeso()">Guardar ✓</button>`;
+  }
+  else if(type==='sueno'){
+    html+=`<div class="modal-title">Registrar sueño 😴</div>
+    <div class="modal-row">
+      <div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Me dormí</div>
+        <input class="modal-input" id="m-sdormir" type="time" style="margin-bottom:0">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Me desperté</div>
+        <input class="modal-input" id="m-sdespertar" type="time" style="margin-bottom:0">
+      </div>
+    </div>
+    <div style="margin:10px 0">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Calidad del sueño</div>
+      <div style="display:flex;gap:8px">
+        ${[1,2,3,4,5].map(n=>`<div onclick="selCalidadSueno(${n})" id="cal-sueno-${n}" style="flex:1;text-align:center;padding:8px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;font-size:18px">${n<=2?'😴':n<=3?'😐':n<=4?'🙂':'😊'}</div>`).join('')}
+      </div>
+    </div>
+    <textarea class="modal-textarea" id="m-snota" placeholder="Nota opcional (ej: me desperté varias veces)"></textarea>
+    <button class="btn-primary" onclick="guardarSueno()">Guardar ✓</button>`;
+  }
+  else if(type==='turno'){
+    html+=`<div class="modal-title">Turno médico 🏥</div>
+    <input class="modal-input" id="m-tesp" placeholder="Especialidad" value="${extra||''}">
+    <input class="modal-input" id="m-tmed" placeholder="Médico (opcional)">
+    <div class="modal-row">
+      <input class="modal-input" id="m-tfecha2" type="date" style="margin-bottom:0">
+      <input class="modal-input" id="m-thora" type="time" style="margin-bottom:0">
+    </div>
+    <textarea class="modal-textarea" id="m-tnota" placeholder="Nota (ej: llevar estudios anteriores)"></textarea>
+    <button class="btn-primary" onclick="guardarTurno()">Agendar ✓</button>`;
+  }
   else if(type==='subtarea'){html+=`<div class="modal-title">Nueva tarea</div><input class="modal-input" id="m-stexto" placeholder="¿Qué hay que hacer?"><button class="btn-primary" onclick="guardarSubtarea('${extra}')">Agregar ✓</button>`;}
   mc.innerHTML=html;
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(()=>mc.querySelector('input,textarea')?.focus(),350);
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.add('open');
+  // Safari fix: force a reflow before focusing
+  setTimeout(()=>{
+    const input = mc.querySelector('input,textarea');
+    if(input){ input.focus(); }
+  }, 400);
 }
-function handleOverlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function handleOverlayClick(e){
+  // Safari-safe: close only if clicking the dark backdrop, not the modal panel
+  const modal = document.getElementById('modal-content');
+  if(modal && (e.target === document.getElementById('modal-overlay'))){
+    closeModal();
+  }
+}
+function closeModal(){
+  const overlay = document.getElementById('modal-overlay');
+  if(overlay) overlay.classList.remove('open');
+}
 function selTag(el){document.querySelectorAll('.modal-tag').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');}
 function selFinTipo(tipo){finTipo=tipo;['gasto','ingreso'].forEach(t=>{document.getElementById(`ftipo-${t}`)?.classList.toggle('selected',t===tipo);});}
 
@@ -1270,29 +1622,42 @@ async function loadSugerencia() {
   }
 }
 
+function irASugerencia(){
+  const card = document.getElementById('sugerencia-card');
+  const screen = card && card.dataset.screen ? card.dataset.screen : 'home';
+  const navItem = document.querySelector(`.nav-item[onclick*="'${screen}'"]`);
+  goTo(screen, navItem);
+}
+
 function mostrarSugerencia() {
   const el = document.getElementById('sugerencia-text');
   if (!el) return;
   const { pendientes = [], notas = 0, prios = [] } = sugerenciaData;
+  
+  // Each option has text + destination screen
   const opciones = [];
 
   if (pendientes.length > 0) {
     const h = pendientes[Math.floor(Math.random() * pendientes.length)];
-    opciones.push(`${h.icono || '⭐'} Todavía no tildaste <strong>${h.nombre}</strong>. ¿Lo hacés ahora?`);
-    opciones.push(`Llevas ${pendientes.length} hábito${pendientes.length>1?'s':''} pendiente${pendientes.length>1?'s':''}. <strong>${pendientes[0].nombre}</strong> podría ser el primero.`);
+    opciones.push({texto:`${h.icono||'⭐'} Todavía no tildaste <strong>${h.nombre}</strong>. ¿Lo hacés ahora?`, screen:'yo'});
+    opciones.push({texto:`Llevás ${pendientes.length} hábito${pendientes.length>1?'s':''} pendiente${pendientes.length>1?'s':''}. <strong>${pendientes[0].nombre}</strong> podría ser el primero.`, screen:'yo'});
   }
   if (prios.length > 0) {
-    opciones.push(`Tenés una prioridad sin completar: <strong>${prios[0].texto}</strong>. ¿Es el momento?`);
+    opciones.push({texto:`Tenés una prioridad sin completar: <strong>${prios[0].texto}</strong>. ¿Es el momento?`, screen:'home'});
   }
-  opciones.push('¿Se te ocurrió algo hoy? Anotalo antes de que se pierda. 💡');
-  opciones.push('Un hábito completado hoy = 10 XP más. ¿Cuál arrancás primero?');
-  opciones.push('Mirá tus proyectos. ¿Hay alguna tarea que puedas tachar hoy?');
-  opciones.push('¿Leíste algo hoy? Aunque sean 5 páginas, suma.');
-  opciones.push('Escribí en el diario cómo arrancó el día. Te va a ayudar a cerrarlo bien.');
-  opciones.push('La constancia no pide perfección. Solo que aparezcas.');
+  opciones.push({texto:'¿Se te ocurrió algo hoy? Anotalo antes de que se pierda. 💡', screen:'notas'});
+  opciones.push({texto:'Un hábito completado hoy = 10 XP más. ¿Cuál arrancás primero?', screen:'yo'});
+  opciones.push({texto:'Mirá tus proyectos. ¿Hay alguna tarea que puedas tachar hoy?', screen:'proyectos'});
+  opciones.push({texto:'¿Leíste algo hoy? Aunque sean 5 páginas, suma.', screen:'play'});
+  opciones.push({texto:'Escribí en el diario cómo arrancó el día. Te va a ayudar a cerrarlo bien.', screen:'diario'});
+  opciones.push({texto:'La constancia no pide perfección. Solo que aparezcas.', screen:'yo'});
 
   const elegida = opciones[Math.floor(Math.random() * opciones.length)];
-  el.innerHTML = elegida;
+  el.innerHTML = elegida.texto;
+  
+  // Store destination for click handler
+  const card = document.getElementById('sugerencia-card');
+  if(card) card.dataset.screen = elegida.screen;
 }
 
 // ── ASISTENTE IA ──
@@ -1356,21 +1721,41 @@ async function sendChat() {
   chatHistory.push({ role: 'user', content: msg });
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        system: `Sos el asistente personal de Fran dentro de su app de productividad FranOS. Fran es argentino, usa vos (tuteo argentino). Sos directo, motivador, sin clichés. Respondés en pocas oraciones, máximo 4. Ayudás a organizar el día, motivar, recordar hábitos y prioridades. ${contexto}`,
-        messages: chatHistory
-      })
-    });
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || 'No pude responder ahora, intentá de nuevo.';
-    chatHistory.push({ role: 'assistant', content: reply });
+    // Smart local responses based on user data
+    const userMsg = msg.toLowerCase();
+    let reply = '';
+    
+    if(userMsg.includes('habito') || userMsg.includes('hábito')){
+      const pend = sugerenciaData.pendientes || [];
+      reply = pend.length > 0 
+        ? `Tenés ${pend.length} hábito${pend.length>1?'s':''} pendientes hoy. El primero podría ser ${pend[0].nombre}. ¿Arrancamos?`
+        : '¡Todos los hábitos del día completados! Eso es constancia real.';
+    } else if(userMsg.includes('nota') || userMsg.includes('idea')){
+      reply = 'Capturá la idea antes de que se pierda. Andá a Notas y tirala ahí, aunque sea desordenada.';
+    } else if(userMsg.includes('proyect')){
+      reply = 'Mirá tus proyectos y elegí UNA sola tarea para hacer hoy. Solo una. Eso alcanza.';
+    } else if(userMsg.includes('diario')){
+      reply = 'El diario no tiene que ser perfecto. Tres líneas sobre cómo fue el día ya cambia algo.';
+    } else if(userMsg.includes('cansa') || userMsg.includes('no tengo ganas') || userMsg.includes('bajón')){
+      reply = 'Está bien no tener ganas. Hacé la versión mínima de lo que tenías planeado. El 20% igual cuenta.';
+    } else if(userMsg.includes('bien') || userMsg.includes('genial') || userMsg.includes('excelente')){
+      reply = 'Bueno, ese estado aprovechalo. ¿Qué es lo más importante que podés hacer en la próxima hora?';
+    } else if(userMsg.includes('mal') || userMsg.includes('pésimo') || userMsg.includes('horrible')){
+      reply = 'Días malos hay siempre. ¿Qué es lo MÁS CHICO que podrías hacer ahora para que el día no se vaya a cero?';
+    } else {
+      const respuestas = [
+        `Según tus datos de hoy, ${sugerenciaData.pendientes?.length>0 ? 'todavía tenés hábitos pendientes' : 'estás al día con los hábitos'}. ¿En qué querés enfocarte?`,
+        '¿Qué es lo más importante para vos hoy? Escribilo y después hacemos un plan.',
+        'La clave no es hacer todo. Es hacer lo correcto. ¿Cuál es tu prioridad real hoy?',
+        'Un día a la vez. ¿Qué necesitás resolver ahora mismo?',
+      ];
+      reply = respuestas[Math.floor(Math.random()*respuestas.length)];
+    }
+    const data = { content: [{ text: reply }] };
+    const replyText = reply;
+    chatHistory.push({ role: 'assistant', content: replyText });
     document.getElementById('chat-loading').style.display = 'none';
-    msgs.innerHTML += `<div style="background:var(--bg3);border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:14px;color:var(--text);line-height:1.5;max-width:85%">${reply}</div>`;
+    msgs.innerHTML += `<div style="background:var(--bg3);border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:14px;color:var(--text);line-height:1.5;max-width:85%">${replyText}</div>`;
     msgs.scrollTop = msgs.scrollHeight;
   } catch(e) {
     document.getElementById('chat-loading').style.display = 'none';
@@ -1408,7 +1793,10 @@ async function openDayPanel(fecha){
   }catch(e){eventosHtml=`<div style="color:var(--text3);font-size:13px">Error cargando eventos</div>`;}
 
   mc.innerHTML=`
-    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-handle" style="margin:0"></div>
+      <button onclick="closeModal()" style="background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-size:14px;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif">Cerrar ✕</button>
+    </div>
     <div style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px">${fechaLabel}</div>
     ${feriado?`<div style="font-size:12px;color:var(--accent4);margin-bottom:12px">🗓️ Feriado: ${feriado.nombre}</div>`:''}
     ${dato&&!feriado?`<div style="font-size:12px;color:var(--text3);margin-bottom:12px">${dato.titulo}</div>`:''}
@@ -1621,7 +2009,10 @@ function closeCtx(){
 }
 
 function showCtxLibro(x, y, id, editData){
+  const parts = editData.split('|');
+  const total = parts[4] || 0;
   showCtx(x, y,[
+    {icon:'📖', label:'Actualizar progreso', action:`openModal('libro-progreso','${id}|${total}')`},
     {icon:'✏️', label:'Editar', action:`openModal('libro-editar','${editData}')`},
     {icon:'✕', label:'Eliminar', cls:'danger', action:`delLibro('${id}')`},
   ]);
@@ -1722,8 +2113,8 @@ async function sendLocalNotif(title, message, url){
         const reg = await navigator.serviceWorker.ready;
         reg.showNotification(title, {
           body: message,
-          icon: '/franos/icon-192.png',
-          badge: '/franos/icon-192.png',
+          icon: './icon-192.png',
+          badge: './icon-192.png',
           data: { url: 'https://francogallozo52.github.io' + url },
           tag: title,
           requireInteraction: false,
@@ -1759,6 +2150,441 @@ async function checkEventReminders(){
       }
     }
   }catch(e){}
+}
+
+
+// ── ENTRENO ──
+const TIPOS_ENTRENO = ['Calistenia','Natación','Bicicleta','Running','Gym','HIIT','Yoga','Fútbol','Básquet','Otro'];
+const SUGERENCIAS_ENTRENO = {
+  principiante: [
+    '💪 Calistenia 20 min — 3x10 sentadillas, 3x8 flexiones, 3x15 abdominales. Descansá 60s entre series.',
+    '🚶 Caminata rápida 30 min. Mantené un ritmo donde puedas hablar pero te cueste un poco.',
+    '🤸 Movilidad y stretching 20 min. Ideal para arrancar el día.',
+    '🚴 Bici suave 30 min. Ritmo constante, sin apuro.',
+    '💧 Natación 20 min. Estilo libre, 4 largos y descansás 30s.',
+  ],
+  intermedio: [
+    '💪 Calistenia 35 min — 4x12 flexiones, 4x15 sentadillas, 3x10 fondos, 3x20 abdominales.',
+    '🏃 Running 25 min a ritmo moderado. Calentá 5 min caminando.',
+    '🏊 Natación 35 min. Alterná estilos cada 4 largos.',
+    '🚴 Bici 45 min con 3 intervalos de 3 min a alta intensidad.',
+    '💪 HIIT 20 min — 40s trabajo / 20s descanso x 10 ejercicios.',
+  ]
+};
+
+async function loadEntrenoTab(){
+  // Load perfil
+  try{
+    const perfil = await sb('perfil','GET',null,'?limit=1');
+    const p = perfil[0];
+    const perfilEl = document.getElementById('perfil-entreno-card');
+    if(perfilEl){
+      if(!p){
+        perfilEl.innerHTML = `<div class="card-label">Tu perfil</div>
+          <div style="font-size:14px;color:var(--text2);margin-bottom:12px">Completá tu perfil para recibir sugerencias personalizadas</div>
+          <button class="btn-primary" onclick="openModal('perfil')">Completar perfil</button>`;
+      } else {
+        const imc = p.peso_actual && p.altura ? (p.peso_actual / ((p.altura/100)**2)).toFixed(1) : null;
+        perfilEl.innerHTML = `<div class="card-label">Tu perfil</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            ${p.peso_actual?`<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--accent)">${p.peso_actual}kg</div><div style="font-size:11px;color:var(--text3)">Peso actual</div></div>`:''}
+            ${p.peso_meta?`<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--accent3)">${p.peso_meta}kg</div><div style="font-size:11px;color:var(--text3)">Meta</div></div>`:''}
+            ${imc?`<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--accent2)">${imc}</div><div style="font-size:11px;color:var(--text3)">IMC</div></div>`:''}
+          </div>
+          <div style="font-size:12px;color:var(--accent);cursor:pointer;margin-top:10px" onclick="openModal('perfil')">✏ Editar perfil</div>`;
+      }
+    }
+  }catch(e){console.warn('perfil:',e);}
+
+  // Load recent sessions
+  try{
+    const sesiones = await sb('entrenamientos','GET',null,'?order=fecha.desc&limit=7');
+    const el = document.getElementById('entreno-list');
+    if(!sesiones.length){
+      el.innerHTML = `<div class="empty"><div class="ei">💪</div><div class="et">Registrá tu primera sesión</div></div>`;
+    } else {
+      el.innerHTML = sesiones.map(s=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="width:40px;height:40px;background:var(--bg3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+            ${s.tipo==='Natación'?'🏊':s.tipo==='Bicicleta'?'🚴':s.tipo==='Running'?'🏃':s.tipo==='Yoga'?'🧘':s.tipo==='HIIT'?'⚡':'💪'}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:500">${s.tipo}</div>
+            <div style="font-size:12px;color:var(--text3)">${fmtDate(s.fecha)}${s.duracion?' · '+s.duracion+' min':''} ${s.intensidad?'· '+s.intensidad:''}</div>
+            ${s.notas?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${s.notas}</div>`:''}
+          </div>
+          <div onclick="delEntreno('${s.id}')" style="color:var(--text3);cursor:pointer;font-size:16px;padding:4px">✕</div>
+        </div>`).join('');
+    }
+
+    // Chart
+    const DL=['D','L','M','M','J','V','S'];
+    const d7=[];
+    for(let i=6;i>=0;i--){const d=daysAgo(i);d7.push(d);}
+    const chartEl = document.getElementById('entreno-chart');
+    if(chartEl){
+      chartEl.innerHTML = d7.map((day,i)=>{
+        const hasSesion = sesiones.some(s=>s.fecha===day);
+        const jsDay = new Date(day+'T12:00:00').getDay();
+        const isToday = i===6;
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="flex:1;width:100%;background:var(--bg4);border-radius:6px;position:relative;overflow:hidden;min-height:50px">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:${hasSesion?'100':'0'}%;background:var(--accent);border-radius:6px;transition:height .5s"></div>
+          </div>
+          <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--text3)'};font-weight:${isToday?600:400}">${DL[jsDay]}</div>
+        </div>`;
+      }).join('');
+    }
+  }catch(e){console.warn('entreno:',e);}
+
+  loadEntrenoSugerencia();
+}
+
+async function loadEntrenoSugerencia(){
+  const el = document.getElementById('entreno-sugerencia');
+  if(!el) return;
+  try{
+    const perfil = await sb('perfil','GET',null,'?limit=1');
+    const nivel = perfil[0]?.nivel || 'principiante';
+    const sugs = SUGERENCIAS_ENTRENO[nivel] || SUGERENCIAS_ENTRENO.principiante;
+    el.textContent = sugs[Math.floor(Math.random()*sugs.length)];
+  }catch{
+    el.textContent = '💪 Hoy es un buen día para mover el cuerpo. Aunque sean 20 minutos.';
+  }
+}
+
+async function delEntreno(id){
+  try{await sb('entrenamientos','DELETE',null,`?id=eq.${id}`);loadEntrenoTab();showToast('Sesión eliminada');}catch{}
+}
+
+// ── NUTRICIÓN ──
+async function loadNutricionTab(){
+  // Peso
+  try{
+    const registros = await sb('peso_registro','GET',null,'?order=fecha.desc&limit=10');
+    const perfil = await sb('perfil','GET',null,'?limit=1');
+    const pesoEl = document.getElementById('peso-card');
+    if(pesoEl){
+      const ultimo = registros[0];
+      const meta = perfil[0]?.peso_meta;
+      const actual = ultimo?.peso || perfil[0]?.peso_actual;
+      const diff = meta && actual ? (actual - meta).toFixed(1) : null;
+      pesoEl.innerHTML = `<div class="card-label">⚖️ Peso</div>
+        <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:12px">
+          <div>
+            <div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--text);line-height:1">${actual||'—'}</div>
+            <div style="font-size:12px;color:var(--text3)">kg actuales</div>
+          </div>
+          ${meta?`<div>
+            <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--accent3);line-height:1">${meta}</div>
+            <div style="font-size:12px;color:var(--text3)">kg meta</div>
+          </div>`:''}
+          ${diff?`<div>
+            <div style="font-family:'DM Serif Display',serif;font-size:24px;color:${parseFloat(diff)>0?'var(--accent)':'var(--accent3)'};line-height:1">${parseFloat(diff)>0?'+':''}${diff}</div>
+            <div style="font-size:12px;color:var(--text3)">diferencia</div>
+          </div>`:''}
+        </div>
+        ${registros.length>1?`<div style="display:flex;justify-content:space-between;align-items:flex-end;height:50px;gap:4px;margin-bottom:10px">
+          ${registros.slice(0,7).reverse().map(r=>{
+            const maxP=Math.max(...registros.map(x=>x.peso));
+            const minP=Math.min(...registros.map(x=>x.peso));
+            const range=maxP-minP||1;
+            const pct=Math.round(((r.peso-minP)/range)*80)+10;
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                <div style="width:100%;height:${pct}%;background:var(--accent2);border-radius:4px 4px 0 0"></div>
+              </div>
+              <div style="font-size:9px;color:var(--text3)">${r.peso}</div>
+            </div>`;
+          }).join('')}
+        </div>`:''}
+        <div style="font-size:12px;color:var(--accent);cursor:pointer" onclick="openModal('peso')">+ Registrar peso</div>`;
+    }
+  }catch(e){console.warn('peso:',e);}
+
+  // Agua y comidas
+  try{
+    const nutri = await sb('nutricion','GET',null,`?fecha=eq.${today()}`);
+    const n = nutri[0];
+    const aguaMl = n?.agua_ml || 0;
+    const aguaMeta = 2000;
+    const aguaPct = Math.min(100, Math.round(aguaMl/aguaMeta*100));
+    document.getElementById('agua-texto').textContent = `${aguaMl} / ${aguaMeta} ml`;
+    document.getElementById('agua-bar').style.width = aguaPct+'%';
+
+    const comidas = n?.comidas || [];
+    const totalCal = comidas.reduce((a,c)=>a+(c.calorias||0),0);
+    const comidasEl = document.getElementById('comidas-list');
+    if(comidasEl){
+      comidasEl.innerHTML = comidas.length ? comidas.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:20px">${c.icono||'🍽️'}</div>
+          <div style="flex:1">
+            <div style="font-size:14px">${c.nombre}</div>
+            ${c.calorias?`<div style="font-size:12px;color:var(--text3)">${c.calorias} kcal</div>`:''}
+          </div>
+          <div onclick="removeComida(${i})" style="color:var(--text3);cursor:pointer;font-size:14px">✕</div>
+        </div>`).join('') : `<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Sin comidas registradas hoy</div>`;
+    }
+    const calEl = document.getElementById('calorias-resumen');
+    if(calEl && totalCal > 0){
+      calEl.innerHTML = `Total del día: <strong style="color:var(--accent)">${totalCal} kcal</strong>`;
+    }
+  }catch(e){console.warn('nutricion:',e);}
+
+  loadRecetaSugerida();
+}
+
+async function addAgua(ml){
+  try{
+    const existing = await sb('nutricion','GET',null,`?fecha=eq.${today()}`);
+    if(existing.length){
+      const nuevo = (existing[0].agua_ml||0) + ml;
+      await sb('nutricion','PATCH',{agua_ml:nuevo},`?fecha=eq.${today()}`);
+    } else {
+      await sb('nutricion','POST',{fecha:today(),agua_ml:ml,comidas:[]});
+    }
+    loadNutricionTab();
+    showToast(`+${ml}ml 💧`);
+  }catch(e){showToast('Error');}
+}
+
+async function removeComida(idx){
+  try{
+    const existing = await sb('nutricion','GET',null,`?fecha=eq.${today()}`);
+    if(!existing.length) return;
+    const comidas = existing[0].comidas || [];
+    comidas.splice(idx,1);
+    await sb('nutricion','PATCH',{comidas},`?fecha=eq.${today()}`);
+    loadNutricionTab();
+  }catch{}
+}
+
+const RECETAS = [
+  {nombre:'🥗 Bowl de pollo y quinoa', cal:480, desc:'Quinoa cocida, pechuga de pollo a la plancha, palta, tomate cherry y limón. Rápido y completo.'},
+  {nombre:'🍳 Huevos revueltos con avena', cal:380, desc:'3 huevos revueltos con vegetales salteados y un bol de avena con banana. Ideal post-entreno.'},
+  {nombre:'🥩 Milanesa de soja con ensalada', cal:420, desc:'Milanesa de soja al horno, ensalada mixta con aceite de oliva. Alta en proteínas vegetales.'},
+  {nombre:'🍝 Fideos con salsa de tomate casera', cal:520, desc:'Fideos integrales con salsa de tomate, albahaca y queso rallado. Carbos de calidad.'},
+  {nombre:'🥤 Smoothie proteico', cal:320, desc:'Leche, banana, manteca de maní, avena y una cucharada de cacao. Desayuno energético.'},
+  {nombre:'🐟 Salmón a la plancha con batata', cal:490, desc:'Salmón con limón y especias, batata asada y brócoli al vapor. Omega-3 y fibra.'},
+  {nombre:'🫘 Guiso de lentejas', cal:440, desc:'Lentejas con verduras, comino y laurel. Alto en hierro, proteínas y fibra.'},
+];
+
+function loadRecetaSugerida(){
+  const el = document.getElementById('receta-sugerida');
+  if(!el) return;
+  const r = RECETAS[Math.floor(Math.random()*RECETAS.length)];
+  el.innerHTML = `<strong style="color:var(--text)">${r.nombre}</strong> · ${r.cal} kcal<br><span style="color:var(--text2)">${r.desc}</span>`;
+}
+
+// ── SALUD ──
+const CHEQUEOS_RECOMENDADOS = [
+  {icono:'🩺', nombre:'Médico clínico general', frecuencia:'1 vez al año'},
+  {icono:'🦷', nombre:'Dentista', frecuencia:'Cada 6 meses'},
+  {icono:'👁️', nombre:'Oftalmólogo', frecuencia:'1 vez al año'},
+  {icono:'🩸', nombre:'Análisis de sangre completo', frecuencia:'1 vez al año'},
+  {icono:'❤️', nombre:'Cardiológico', frecuencia:'Cada 2 años'},
+  {icono:'🧠', nombre:'Chequeo neurológico', frecuencia:'Según necesidad'},
+  {icono:'🏃', nombre:'Apto físico deportivo', frecuencia:'1 vez al año si hacés deporte'},
+];
+
+async function loadSaludTab(){
+  // Sueño
+  try{
+    const suenos = await sb('sueno','GET',null,'?order=fecha.desc&limit=7');
+    const hoy = suenos.find(s=>s.fecha===today());
+    const suenoEl = document.getElementById('sueno-hoy');
+    if(suenoEl){
+      if(hoy){
+        const estrellas = '⭐'.repeat(hoy.calidad||0) + '☆'.repeat(5-(hoy.calidad||0));
+        suenoEl.innerHTML = `<div style="display:flex;align-items:center;gap:16px">
+          <div style="text-align:center">
+            <div style="font-family:'DM Serif Display',serif;font-size:36px;color:var(--accent2)">${hoy.horas_dormidas||'—'}</div>
+            <div style="font-size:12px;color:var(--text3)">horas</div>
+          </div>
+          <div>
+            <div style="font-size:14px">${hoy.hora_dormir||''} → ${hoy.hora_despertar||''}</div>
+            <div style="font-size:16px;margin-top:4px">${estrellas}</div>
+            ${hoy.nota?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${hoy.nota}</div>`:''}
+          </div>
+        </div>`;
+      } else {
+        suenoEl.innerHTML = `<div style="text-align:center;padding:12px;color:var(--text3);font-size:13px">No registraste el sueño de anoche</div>`;
+      }
+    }
+
+    // Sueño chart
+    const chartEl = document.getElementById('sueno-chart');
+    if(chartEl && suenos.length){
+      const DL=['D','L','M','M','J','V','S'];
+      const d7=[];
+      for(let i=6;i>=0;i--) d7.push(daysAgo(i));
+      const maxH = Math.max(...suenos.map(s=>s.horas_dormidas||0), 8);
+      chartEl.innerHTML = d7.map((day,i)=>{
+        const s = suenos.find(x=>x.fecha===day);
+        const h = s?.horas_dormidas || 0;
+        const pct = Math.round((h/maxH)*100);
+        const jsDay = new Date(day+'T12:00:00').getDay();
+        const color = h>=7?'var(--accent3)':h>=5?'var(--accent4)':'var(--red)';
+        const isToday = i===6;
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="font-size:9px;color:var(--text3);min-height:12px">${h>0?h+'h':''}</div>
+          <div style="flex:1;width:100%;background:var(--bg4);border-radius:6px;position:relative;overflow:hidden;min-height:40px">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:${pct}%;background:${color};border-radius:6px;transition:height .5s"></div>
+          </div>
+          <div style="font-size:10px;color:${isToday?'var(--accent2)':'var(--text3)'};font-weight:${isToday?600:400}">${DL[jsDay]}</div>
+        </div>`;
+      }).join('');
+    }
+  }catch(e){console.warn('sueno:',e);}
+
+  // Turnos
+  try{
+    const turnos = await sb('turnos_medicos','GET',null,'?order=fecha.asc&completado=eq.false');
+    const el = document.getElementById('turnos-list');
+    if(el){
+      el.innerHTML = turnos.length ? turnos.map(t=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:22px">🏥</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:500">${t.especialidad}</div>
+            ${t.medico?`<div style="font-size:12px;color:var(--text2)">${t.medico}</div>`:''}
+            ${t.fecha?`<div style="font-size:12px;color:var(--text3)">${fmtDate(t.fecha)}${t.hora?' · '+t.hora:''}</div>`:''}
+          </div>
+          <div onclick="completarTurno('${t.id}')" style="font-size:12px;color:var(--accent3);cursor:pointer;padding:4px">✓</div>
+          <div onclick="delTurno('${t.id}')" style="font-size:14px;color:var(--text3);cursor:pointer;padding:4px">✕</div>
+        </div>`).join('') :
+        `<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Sin turnos pendientes</div>`;
+    }
+  }catch(e){console.warn('turnos:',e);}
+
+  // Chequeos sugeridos
+  const cheqEl = document.getElementById('chequeos-sugeridos');
+  if(cheqEl){
+    cheqEl.innerHTML = CHEQUEOS_RECOMENDADOS.map(c=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:20px">${c.icono}</div>
+        <div style="flex:1">
+          <div style="font-size:14px">${c.nombre}</div>
+          <div style="font-size:12px;color:var(--text3)">${c.frecuencia}</div>
+        </div>
+        <div onclick="openModal('turno','${c.nombre}')" style="font-size:11px;color:var(--accent);cursor:pointer;padding:4px">+ Agendar</div>
+      </div>`).join('');
+  }
+}
+
+async function completarTurno(id){
+  try{await sb('turnos_medicos','PATCH',{completado:true},`?id=eq.${id}`);loadSaludTab();showToast('Turno completado ✓');}catch{}
+}
+async function delTurno(id){
+  try{await sb('turnos_medicos','DELETE',null,`?id=eq.${id}`);loadSaludTab();}catch{}
+}
+
+
+// ── GUARDAR FUNCIONES YO ──
+let calidadSueno = 3;
+function selCalidadSueno(n){
+  calidadSueno = n;
+  [1,2,3,4,5].forEach(i=>{
+    const el = document.getElementById(`cal-sueno-${i}`);
+    if(el) el.style.background = i<=n ? 'var(--accent2)' : '';
+    if(el) el.style.borderColor = i<=n ? 'var(--accent2)' : 'var(--border)';
+  });
+}
+
+async function guardarPerfil(){
+  const peso_actual = parseFloat(document.getElementById('m-ppeso')?.value)||null;
+  const peso_meta = parseFloat(document.getElementById('m-pmeta')?.value)||null;
+  const altura = parseFloat(document.getElementById('m-paltura')?.value)||null;
+  const nivel = document.getElementById('m-pnivel')?.value||'principiante';
+  const objetivo = document.getElementById('m-pobjetivo')?.value||'bienestar';
+  try{
+    const existing = await sb('perfil','GET',null,'?limit=1');
+    if(existing.length) await sb('perfil','PATCH',{peso_actual,peso_meta,altura,nivel,objetivo},`?id=eq.${existing[0].id}`);
+    else await sb('perfil','POST',{peso_actual,peso_meta,altura,nivel,objetivo});
+    closeModal();showToast('Perfil guardado ✓');loadEntrenoTab();loadNutricionTab();
+  }catch{showToast('Error');}
+}
+
+async function guardarEntreno(){
+  const tipo = document.getElementById('m-etipo')?.value;
+  const duracion = parseInt(document.getElementById('m-edur')?.value)||null;
+  const intensidad = document.getElementById('m-eint')?.value||null;
+  const fecha = document.getElementById('m-efecha2')?.value||today();
+  const notas = document.getElementById('m-enotas')?.value.trim()||null;
+  if(!tipo){showToast('Elegí un tipo');return;}
+  try{
+    await sb('entrenamientos','POST',{tipo,duracion,intensidad,fecha,notas});
+    closeModal();showToast('Sesión registrada ✓');loadEntrenoTab();
+  }catch{showToast('Error');}
+}
+
+async function guardarComida(){
+  const nombre = document.getElementById('m-cnombre')?.value.trim();
+  const calorias = parseInt(document.getElementById('m-ccal')?.value)||0;
+  const icono = document.getElementById('m-cicono')?.value.trim()||'🍽️';
+  const proteinas = parseInt(document.getElementById('m-cprot')?.value)||0;
+  const carbos = parseInt(document.getElementById('m-ccarb')?.value)||0;
+  if(!nombre){showToast('Poné un nombre');return;}
+  try{
+    const existing = await sb('nutricion','GET',null,`?fecha=eq.${today()}`);
+    const comida = {nombre,calorias,icono,proteinas,carbos};
+    if(existing.length){
+      const comidas = [...(existing[0].comidas||[]), comida];
+      await sb('nutricion','PATCH',{comidas},`?fecha=eq.${today()}`);
+    } else {
+      await sb('nutricion','POST',{fecha:today(),comidas:[comida],agua_ml:0});
+    }
+    closeModal();showToast('Comida agregada ✓');loadNutricionTab();
+  }catch{showToast('Error');}
+}
+
+async function guardarPeso(){
+  const peso = parseFloat(document.getElementById('m-wkg')?.value);
+  const fecha = document.getElementById('m-wfecha')?.value||today();
+  const nota = document.getElementById('m-wnota')?.value.trim()||null;
+  if(!peso){showToast('Ingresá tu peso');return;}
+  try{
+    await sb('peso_registro','POST',{peso,fecha,nota});
+    // update perfil too
+    const perfil = await sb('perfil','GET',null,'?limit=1');
+    if(perfil.length) await sb('perfil','PATCH',{peso_actual:peso},`?id=eq.${perfil[0].id}`);
+    closeModal();showToast('Peso registrado ✓');loadNutricionTab();
+  }catch{showToast('Error');}
+}
+
+async function guardarSueno(){
+  const hora_dormir = document.getElementById('m-sdormir')?.value||null;
+  const hora_despertar = document.getElementById('m-sdespertar')?.value||null;
+  const nota = document.getElementById('m-snota')?.value.trim()||null;
+  let horas_dormidas = null;
+  if(hora_dormir && hora_despertar){
+    const [h1,m1] = hora_dormir.split(':').map(Number);
+    const [h2,m2] = hora_despertar.split(':').map(Number);
+    let mins = (h2*60+m2) - (h1*60+m1);
+    if(mins < 0) mins += 24*60;
+    horas_dormidas = Math.round(mins/60*10)/10;
+  }
+  try{
+    const existing = await sb('sueno','GET',null,`?fecha=eq.${today()}`);
+    const data = {hora_dormir,hora_despertar,horas_dormidas,calidad:calidadSueno,nota};
+    if(existing.length) await sb('sueno','PATCH',data,`?fecha=eq.${today()}`);
+    else await sb('sueno','POST',{...data,fecha:today()});
+    closeModal();showToast('Sueño registrado ✓');loadSaludTab();
+  }catch{showToast('Error');}
+}
+
+async function guardarTurno(){
+  const especialidad = document.getElementById('m-tesp')?.value.trim();
+  const medico = document.getElementById('m-tmed')?.value.trim()||null;
+  const fecha = document.getElementById('m-tfecha2')?.value||null;
+  const hora = document.getElementById('m-thora')?.value||null;
+  const nota = document.getElementById('m-tnota')?.value.trim()||null;
+  if(!especialidad){showToast('Poné la especialidad');return;}
+  try{
+    await sb('turnos_medicos','POST',{especialidad,medico,fecha,hora,nota,completado:false});
+    closeModal();showToast('Turno agendado ✓');loadSaludTab();
+  }catch{showToast('Error');}
 }
 
 
@@ -1847,8 +2673,8 @@ function scheduleAt(hour, minute, messageOrPromise){
       if(Notification.permission === 'granted'){
         new Notification('FranOS', {
           body: message,
-          icon: '/franos/icon-192.png',
-          badge: '/franos/icon-192.png',
+          icon: './icon-192.png',
+          badge: './icon-192.png',
           tag: `franos-${hour}-${minute}`,
         });
       }
@@ -1873,7 +2699,7 @@ async function scheduleEventReminders(){
         setTimeout(()=>{
           new Notification('📅 FranOS — Recordatorio', {
             body: `En 2 horas: ${e.titulo}${e.hora?' a las '+e.hora:''}`,
-            icon: '/franos/icon-192.png',
+            icon: './icon-192.png',
             tag: `franos-event-${e.id}`,
           });
         }, msUntil);
@@ -1886,6 +2712,8 @@ async function scheduleEventReminders(){
 init();
 initOneSignal();
 setInterval(()=>{scheduleNotifications();checkEventReminders();}, 60000);
+
+
 </script>
 </body>
 </html>
